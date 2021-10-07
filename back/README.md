@@ -1,4 +1,4 @@
-Run back-end:
+Run backend:
 ```docker-compose up --build```
 
 Call Search API:

@@ -41,7 +41,7 @@ def create_app(test_config=None):
             client_credentials_manager=SpotifyClientCredentials())
 
         # https://spotipy.readthedocs.io/en/2.19.0/#spotipy.client.Spotify.search
-        results = spotify.search(q='song:' + text, type='track', limit=3)
+        results = spotify.search(q=text, type='track', limit=3)
         for track in results['tracks']['items']:
             print(track['name'], file=sys.stderr)
             print(track['type'], file=sys.stderr)
