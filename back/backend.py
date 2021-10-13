@@ -1,6 +1,9 @@
 import os
+import sys
 
-from flask import Flask
+from flask import Flask, request
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
 
 def create_app(test_config=None):
@@ -28,5 +31,20 @@ def create_app(test_config=None):
     @app.route('/hello')
     def hello():
         return 'Hello, World!'
+
+    @app.route('/search')
+    def search():
+        # text = request.args.get['text']
+        text = "call me maybe"
+        print(text, file=sys.stderr)
+        spotify = spotipy.Spotify(
+            client_credentials_manager=SpotifyClientCredentials())
+
+        # https://spotipy.readthedocs.io/en/2.19.0/#spotipy.client.Spotify.search
+        results = spotify.search(q=text, type='track', limit=3)
+        for track in results['tracks']['items']:
+            print(track['name'], file=sys.stderr)
+            print(track['type'], file=sys.stderr)
+        return results
 
     return app
