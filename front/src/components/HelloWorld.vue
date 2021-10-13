@@ -1,12 +1,12 @@
 <template>
   <div class="main-grid">
     <h1>{{ msg2 }}</h1>
-    <p>
-     <input v-model="message" placeholder="edit me">
+    <div>
+     <input v-model="spotify_body" placeholder="edit me">
      <button @click="doSomething">I'm a button</button>
-     
+      <p>Message is: {{ spotify_body }}</p>     
     
-    </p>
+    </div>
    
   </div>
 </template>
@@ -20,7 +20,8 @@ export default {
   }, 
   data() {
     return{
-      msg2:'hello buddy'
+      msg2:'hello buddy',
+      spotify_body: ''
     }
   },
   methods: {
@@ -31,8 +32,8 @@ export default {
             );
             // JSON responses are automatically parsed.
             // this.posts = response.data;
-            console.log("its working")
-            console.log(response.data)
+            console.log(this.$data.spotify_body)
+            console.log(response)
           } catch (error) {
             console.log(error);
           }
