@@ -32,6 +32,9 @@ def create_app(test_config=None):
     def hello():
         return 'Hello, World!'
 
+
+    # accepts: query_string in JSON of request body
+    # returns: id, song_title, artist, album in JSON
     @app.route('/search')
     def search():
         # text = request.args.get['text']
