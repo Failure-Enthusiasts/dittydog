@@ -27,9 +27,17 @@ export default {
   methods: {
     async doSomething(){
       try {
-            const response = await axios.get(
-              "http://jsonplaceholder.typicode.com/posts"
-            );
+            const response = await 
+              axios.post('/song', {
+                query_string: this.$data.spotify_body,
+                limit: 7
+              })
+              .then(function (response) {
+                console.log(response);
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
             // JSON responses are automatically parsed.
             // this.posts = response.data;
             console.log(this.$data.spotify_body)
