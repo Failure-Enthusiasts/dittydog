@@ -5,12 +5,14 @@
       <input v-model="spotify_body" placeholder="edit me" />
       <button @click="doSomething">I'm a button</button>
       <p>Message is: {{ spotify_body }}</p>
+      <p id="test123">Search Result: {{ doSomething() }}</p>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+// var search_result;
 export default {
   name: "HelloWorld",
   props: {
@@ -30,9 +32,10 @@ export default {
             query_string: this.$data.spotify_body,
             limit: 7,
           })
-          .then(function (response) {
-            console.log(response);
-          })
+          // .then(function (response) {
+          //   console.log(response);
+          //   search_result = response;
+          // })
           .catch(function (error) {
             console.log(error);
           });
@@ -40,6 +43,9 @@ export default {
         // this.posts = response.data;
         console.log(this.$data.spotify_body);
         console.log(response);
+        document.querySelector("#test123").innerText =
+          response.data[1].song_name; // #FIXME: Can we find a more Vue way to do this?
+        return response.data;
       } catch (error) {
         console.log(error);
       }
