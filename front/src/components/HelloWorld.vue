@@ -8,7 +8,7 @@
       <p
         v-for="search_result in search_results"
         :key="search_result.song_id"
-        @click="song_confirm(event)"
+        @click="song_confirm(search_result.song_id)"
       >
         {{ search_result.song_name }} -
         {{ search_result.artist_name }}
@@ -52,23 +52,14 @@ export default {
         console.log(error);
       }
     },
-    song_confirm: async function (event) {
-      // const response = await axios
-      //   .post("http://0.0.0.0/confirm", {
-      //     song_id: // (some way to grab the clicked-on song name goes here),
-      //     limit: 7,
-      //   })
-      //   .catch(function (error) {
-      //     console.log(error);
-      //   });
-      console.log("EVENT");
-      console.log(event);
-      //   console.log("SEARCH TERM: " + this.$data.spotify_body);
-      //   this.search_results = response.data;
-      //   return response.data;
-      // } catch (error) {
-      //   console.log(error);
-      // }
+    song_confirm: async function (id) {
+      await axios
+        .post("http://0.0.0.0/confirm", {
+          song_id: id// (some way to grab the clicked-on song name goes here),
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     },
   },
 };
