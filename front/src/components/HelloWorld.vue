@@ -5,7 +5,11 @@
       <input v-model="spotify_body" placeholder="edit me" />
       <button @click="song_search">I'm a button</button>
       <p>Message is: {{ spotify_body }}</p>
-      <p v-for="search_result in search_results" :key="search_result.song_id">
+      <p
+        v-for="search_result in search_results"
+        :key="search_result.song_id"
+        @click="song_confirm(event)"
+      >
         {{ search_result.song_name }} -
         {{ search_result.artist_name }}
       </p>
@@ -47,6 +51,24 @@ export default {
       } catch (error) {
         console.log(error);
       }
+    },
+    song_confirm: async function (event) {
+      // const response = await axios
+      //   .post("http://0.0.0.0/confirm", {
+      //     song_id: // (some way to grab the clicked-on song name goes here),
+      //     limit: 7,
+      //   })
+      //   .catch(function (error) {
+      //     console.log(error);
+      //   });
+      console.log("EVENT");
+      console.log(event);
+      //   console.log("SEARCH TERM: " + this.$data.spotify_body);
+      //   this.search_results = response.data;
+      //   return response.data;
+      // } catch (error) {
+      //   console.log(error);
+      // }
     },
   },
 };
