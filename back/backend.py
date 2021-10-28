@@ -11,6 +11,7 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     CORS(app)
+    spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
     # a simple page that says hello
     @app.route("/hello")
     def hello():
@@ -51,5 +52,12 @@ def create_app(test_config=None):
         # https://spotipy.readthedocs.io/en/2.19.0/#spotipy.client.Spotify.search
         results = spotify.search(q=text, type="track", limit=limit)
         return search_result_parsing(results)
+    
+    @app.route("/confirm", methods=["POST"])
+    def confirm():
+        print(request.json, file=sys.stderr)
+        results = spotify.playlist_add_items('1nPoTsd4G2Fz2WFMyXn4rX', request.json["song_id"])
+        print(results)
+        return "very very gooooood request", 200
 
     return app
