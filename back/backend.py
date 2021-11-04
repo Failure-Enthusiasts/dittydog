@@ -1,9 +1,9 @@
 import os
 import sys
 import json
-from flask import Flask, request
+from flask import Flask, request, redirect
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from flask_cors import CORS
 
 
@@ -12,13 +12,14 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     CORS(app)
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
-    # a simple page that says hello
+
     @app.route("/hello")
     def hello():
-        return "Hello, World!"
-
-    # accepts: query_string in JSON of request body
-    # returns: id, song_title, artist, album in JSON
+        # https://github.com/plamere/spotipy/blob/master/examples/app.py
+        scope = "playlist-modify-public"
+        auth_manager = SpotifyOAuth(scope=scope, show_dialog=True)
+        auth_url = auth_manager.get_authorize_url()
+        return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
     #     curl -X POST 0.0.0.0/search -H 'Content-Type: application/json' -d '{"query_string":"freebird","limit":7}'
     def search_result_parsing(results):
@@ -47,12 +48,10 @@ def create_app(test_config=None):
         limit = request.json["limit"] if "limit" in request.json else 5
         print(text, file=sys.stderr)
         print("limit: " + str(limit))
-        spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
-        # https://spotipy.readthedocs.io/en/2.19.0/#spotipy.client.Spotify.search
         results = spotify.search(q=text, type="track", limit=limit)
         return search_result_parsing(results)
-    
+
     @app.route("/confirm", methods=["POST"])
     def confirm():
         print(request.json, file=sys.stderr)
