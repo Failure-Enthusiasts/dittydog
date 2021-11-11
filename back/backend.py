@@ -74,7 +74,7 @@ def create_app(test_config=None):
         # code: http://localhost:8080/?code=AQDQgZuzwL-DBZYjTGK3Tsqu2GxXS2wb3oJJpUky2fLaBxaSIRJjRwZGq88ouhxGimT1wfNTJ3KGSvl1asATzcYRkB5T1KIsquSErGmBHCPiiHg11Xwf7w4HcY0X0BGOFmm6rsuagoTbQgGJFtku60An-_JBEt4vxfGFPcLpCOjrlAPYXKTqtHWXIMW9wWj59A
         # song_id: 5EWPGh7jbTNO2wakv8LjUI
         auth_manager.get_access_token(
-            "AQATeegi6AlTbmslCiFSeCpivvEZO7FNEr9OrZLMKZeWO4U8H29H4XOGOp7iD1TfL_VxIHCA3ThnUADcaIgn4e2SUXmH2OpptO1IxiEa4jtAvhKUVRFEaTzL80a0U4wZ_meV0y8WoiSAzSxWhRSgw1jQp1nd6ziJNgK91z5GL6b4remCdT8ExBE7FnkrUHF0gQ"
+            "AQDMCmEmLBiPqOSGOinSqPwVWGfKIGQ4n_I6nbcJgRu7O8abwfN6mfhV7j6Lt8Kql6LkA51jyVgDtrQfHWrFBTH90UZ6CRgpTjoLOw_VC4731BiLNojDogr35iotwMBHNwZfBaLrBUu0IFgWTmHpCpFiiOBIchsMJ07lPnXDZ3GkT_TKNY4GlzOuIY_XxH8817tyryi-Jqo4HyIq0WmU6Cx7th7fNCisQIIbEZaAoj-yT8HgN0aOxDoikm-axEQfH715XIjnWmGxb4xa6pNS1WmF5mq7uaXSRNgLyV8U98OtDJSDkorIdLL42X4E-UI7N5BBaJrVRq20HxE"
         )
 
         print("CONFIRM access token", file=sys.stderr)
@@ -95,7 +95,7 @@ def create_app(test_config=None):
         )
 
         # uri: spotify:track:1MY8GBPEOCVa2tuOWHngZc
-        print(results)
+        print(results, file=sys.stderr)
         return "very very gooooood request", 200
 
     return app
