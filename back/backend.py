@@ -16,9 +16,10 @@ def create_app(test_config=None):
     @app.route("/hello")
     def hello():
         # https://github.com/plamere/spotipy/blob/master/examples/app.py
-        scope = "playlist-modify-public"
+        scope = "user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private playlist-read-collaborative"
         auth_manager = SpotifyOAuth(scope=scope, show_dialog=True)
         auth_url = auth_manager.get_authorize_url()
+
         return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
     #     curl -X POST 0.0.0.0/search -H 'Content-Type: application/json' -d '{"query_string":"freebird","limit":7}'
@@ -27,6 +28,7 @@ def create_app(test_config=None):
             lambda x: {
                 "song_name": x["name"],
                 "song_id": x["id"],
+                "song_uri": x["uri"],
                 "album_name": x["album"]["name"],
                 "artist_name": x["artists"][0]["name"],
                 "duration": x["duration_ms"],
@@ -54,8 +56,45 @@ def create_app(test_config=None):
 
     @app.route("/confirm", methods=["POST"])
     def confirm():
+
+        print("CONFIRM start", file=sys.stderr)
+
+        ####                      #######
+        # Hard Coded Auth Manager call  #
+        ####                      #######
+        # playlist_id: 6bMWOcbmA9X1sl30boENAD
+        auth_manager = spotipy.oauth2.SpotifyOAuth(
+            scope="user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private playlist-read-collaborative",
+            # show_dialog=True,
+        )
+        print("CONFIRM auth_manager", file=sys.stderr)
+        # auth_manager = SpotifyOAuth(scope=scope, show_dialog=True)
+        # auth_url = auth_manager.get_authorize_url()
+
+        # code: http://localhost:8080/?code=AQDQgZuzwL-DBZYjTGK3Tsqu2GxXS2wb3oJJpUky2fLaBxaSIRJjRwZGq88ouhxGimT1wfNTJ3KGSvl1asATzcYRkB5T1KIsquSErGmBHCPiiHg11Xwf7w4HcY0X0BGOFmm6rsuagoTbQgGJFtku60An-_JBEt4vxfGFPcLpCOjrlAPYXKTqtHWXIMW9wWj59A
+        # song_id: 5EWPGh7jbTNO2wakv8LjUI
+        auth_manager.get_access_token(
+            "AQATeegi6AlTbmslCiFSeCpivvEZO7FNEr9OrZLMKZeWO4U8H29H4XOGOp7iD1TfL_VxIHCA3ThnUADcaIgn4e2SUXmH2OpptO1IxiEa4jtAvhKUVRFEaTzL80a0U4wZ_meV0y8WoiSAzSxWhRSgw1jQp1nd6ziJNgK91z5GL6b4remCdT8ExBE7FnkrUHF0gQ"
+        )
+
+        print("CONFIRM access token", file=sys.stderr)
+        spotify2 = spotipy.Spotify(auth_manager=auth_manager)
+
+        print("CONFIRM spotipy2", file=sys.stderr)
         print(request.json, file=sys.stderr)
-        results = spotify.playlist_add_items('1nPoTsd4G2Fz2WFMyXn4rX', request.json["song_id"])
+        # print(f'CONFIRM song URI: {request.json["song_uri"]}', file=sys.stderr)
+        # results = spotify2.playlist_add_items(
+        #     "6bMWOcbmA9X1sl30boENAD", request.json["song_uri"]
+        # )
+        # results = spotify2.playlist_add_items(
+        #     "6bMWOcbmA9X1sl30boENAD", "spotify%3Atrack%3A5EWPGh7jbTNO2wakv8LjUI"
+        # )
+
+        results = spotify2.playlist_add_items(
+            "6bMWOcbmA9X1sl30boENAD", ["1MY8GBPEOCVa2tuOWHngZc"]
+        )
+
+        # uri: spotify:track:1MY8GBPEOCVa2tuOWHngZc
         print(results)
         return "very very gooooood request", 200
 
