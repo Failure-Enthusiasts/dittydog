@@ -19,5 +19,20 @@ export default {
   props: {
     results_arr: Array,
   },
+  methods: {
+    song_confirm: function (id) {
+      //hide the search results
+      console.log("pretend we added the song " + id);
+      this.$emit("addsong");
+      // await axios
+      //   .post("http://0.0.0.0/confirm", {
+      //     song_id: id// (some way to grab the clicked-on song name goes here),
+      //   })
+      //   .catch(function (error) {
+      //     console.log(error);
+      //   });
+      return 
+    },
+  }
 }
 </script>

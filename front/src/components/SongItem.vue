@@ -1,7 +1,7 @@
 <template>
   <div>
     <img :src=album_url>
-    <p>
+    <p class="itemwrapper">
       {{ song_name }} -
       {{ artist_name }}
     </p>
@@ -18,3 +18,21 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+img {
+  width:40px;
+  display: inline-block;
+  vertical-align: middle;
+  padding-right: 10px;
+
+}
+.itemwrapper {
+  display: inline;
+  font-size: 25px;
+  vertical-align: middle;
+}
+div {
+  padding: 10px;
+}
+</style>
