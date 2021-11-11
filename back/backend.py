@@ -74,7 +74,7 @@ def create_app(test_config=None):
         # code: http://localhost:8080/?code=AQDQgZuzwL-DBZYjTGK3Tsqu2GxXS2wb3oJJpUky2fLaBxaSIRJjRwZGq88ouhxGimT1wfNTJ3KGSvl1asATzcYRkB5T1KIsquSErGmBHCPiiHg11Xwf7w4HcY0X0BGOFmm6rsuagoTbQgGJFtku60An-_JBEt4vxfGFPcLpCOjrlAPYXKTqtHWXIMW9wWj59A
         # song_id: 5EWPGh7jbTNO2wakv8LjUI
         auth_manager.get_access_token(
-            "AQBqTtIa_sYID9yWsT5R0CAopG9a5D_ws14u-XPaywsUOF7npQ_hg9Fo1cKGnEqmHdumSnWd71N0kt_vCuj9Y2w0mTWCfiUA7laQ9I-tQVqXsXzjfKhs6adZrewl5HRvb6B1E4SwpoYBtxGgx8TcaNm8PaOmclZaHc-QvkgP5tSwwyXryIDPJyM8AFZlt1tl9G7Tj-2K6PvRuBeAi0tpnXsTnoFGfTR7W9GpConz3nqkxMUTDRlbJnDxnWXHlvpQoBX3Pr9Z_20MTkKzkNK2TbfHo1GQQdCaevvyrYRq47hW75NeJCaqzEEoXoXsRje5e9G-mTuhtz4u1HY"
+            "AQDMCmEmLBiPqOSGOinSqPwVWGfKIGQ4n_I6nbcJgRu7O8abwfN6mfhV7j6Lt8Kql6LkA51jyVgDtrQfHWrFBTH90UZ6CRgpTjoLOw_VC4731BiLNojDogr35iotwMBHNwZfBaLrBUu0IFgWTmHpCpFiiOBIchsMJ07lPnXDZ3GkT_TKNY4GlzOuIY_XxH8817tyryi-Jqo4HyIq0WmU6Cx7th7fNCisQIIbEZaAoj-yT8HgN0aOxDoikm-axEQfH715XIjnWmGxb4xa6pNS1WmF5mq7uaXSRNgLyV8U98OtDJSDkorIdLL42X4E-UI7N5BBaJrVRq20HxE"
         )
 
         print("CONFIRM access token", file=sys.stderr)
