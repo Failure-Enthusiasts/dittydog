@@ -3,33 +3,29 @@
     <h1>{{ msg2 }}</h1>
     <div>
       <input v-model="spotify_body" placeholder="edit me" />
-      <button @click="song_search">I'm a button</button>
-      <p>Message is: {{ spotify_body }}</p>
-      <p
-        v-for="search_result in search_results"
-        :key="search_result.song_id"
-        @click="song_confirm(search_result.song_id)"
-      >
-        {{ search_result.song_name }} -
-        {{ search_result.artist_name }}
-      </p>
+      <button @click="song_search">Search</button>
+      <SearchResult v-bind:results_arr="search_results" v-if="search_mode_on" v-on:addsong="search_mode_on = false, spotify_body = ''"></SearchResult>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import SearchResult from "./SearchResult";
 // var search_result;
 export default {
-  name: "HelloWorld",
+  name: "Main",
+  components: {SearchResult},
   props: {
-    msg: String,
+    test: String,
+    results_arr: Array,
   },
   data() {
     return {
       msg2: "hello buddy",
       spotify_body: "",
       search_results: "",
+      search_mode_on: false,
     };
   },
   methods: {
@@ -47,19 +43,11 @@ export default {
         console.log(response.data);
         console.log("SEARCH TERM: " + this.$data.spotify_body);
         this.search_results = response.data;
+        this.search_mode_on = true;
         return response.data;
       } catch (error) {
         console.log(error);
       }
-    },
-    song_confirm: async function (id) {
-      await axios
-        .post("http://0.0.0.0/confirm", {
-          song_id: id// (some way to grab the clicked-on song name goes here),
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
     },
   },
 };
