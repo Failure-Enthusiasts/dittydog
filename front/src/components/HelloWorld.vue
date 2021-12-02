@@ -33,14 +33,18 @@ export default {
     };
   },
   methods: {
-    song_search: async function () {
+    song_search: async function() {
       try {
         const response = await axios
-          .post("http://0.0.0.0/search", {
-            query_string: this.$data.spotify_body,
-            limit: 7,
-          })
-          .catch(function (error) {
+          .post(
+            "http://0.0.0.0/search",
+            {
+              query_string: this.$data.spotify_body,
+              limit: 7,
+            },
+            { withCredentials: true }
+          )
+          .catch(function(error) {
             console.log(error);
           });
         console.log("RESPONSE");
@@ -52,12 +56,16 @@ export default {
         console.log(error);
       }
     },
-    song_confirm: async function (song_uri) {
+    song_confirm: async function(song_uri) {
       await axios
-        .post("http://0.0.0.0/confirm", {
-          song_uri: song_uri, // (some way to grab the clicked-on song name goes here),
-        })
-        .catch(function (error) {
+        .post(
+          "http://0.0.0.0/confirm",
+          {
+            song_uri: song_uri, // (some way to grab the clicked-on song name goes here),
+          },
+          { withCredentials: true }
+        )
+        .catch(function(error) {
           console.log(error);
         });
     },

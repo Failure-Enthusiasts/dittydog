@@ -5,7 +5,7 @@ from flask import Flask, session, request, redirect
 from flask_session import Session
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import uuid
 
 caches_folder = './.spotify_caches/'
@@ -29,16 +29,7 @@ def create_app(test_config=None):
     spotify = spotipy.Spotify(
         client_credentials_manager=SpotifyClientCredentials())
 
-#    @app.route("/hello")
-#    def hello():
-#        # https://github.com/plamere/spotipy/blob/master/examples/app.py
-#        scope = "user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private playlist-read-collaborative"
-#        auth_manager = SpotifyOAuth(scope=scope, show_dialog=True)
-#        auth_url = auth_manager.get_authorize_url()
-#
-#        return f'<h2><a href="{auth_url}">Sign in</a></h2>'
-
-    #     curl -X POST 0.0.0.0/search -H 'Content-Type: application/json' -d '{"query_string":"freebird","limit":7}'
+    # https://github.com/plamere/spotipy/blob/master/examples/app.py
 
     @app.route('/')
     def index():
@@ -86,6 +77,7 @@ def create_app(test_config=None):
         return test_names_arr
 
     @app.route("/search", methods=["POST"])
+    @cross_origin(supports_credentials=True)
     def search():
         print(request.json, file=sys.stderr)
         if "query_string" not in request.json or request.json["query_string"] == "":
@@ -100,44 +92,11 @@ def create_app(test_config=None):
         return search_result_parsing(results)
 
     @app.route("/confirm", methods=["POST"])
+    @cross_origin(supports_credentials=True)
     def confirm():
-
-        #        print("CONFIRM start", file=sys.stderr)
-        #
-        #        ####                      #######
-        #        # Hard Coded Auth Manager call  #
-        #        ####                      #######
-        #        # playlist_id: 6bMWOcbmA9X1sl30boENAD
-        #        auth_manager = spotipy.oauth2.SpotifyOAuth(
-        #            scope="user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private playlist-read-collaborative",
-        #            # show_dialog=True,
-        #        )
-        #        print("CONFIRM auth_manager", file=sys.stderr)
-        #        # auth_manager = SpotifyOAuth(scope=scope, show_dialog=True)
-        #        # auth_url = auth_manager.get_authorize_url()
-        #
-        #        # code: http://localhost:8080/?code=AQDQgZuzwL-DBZYjTGK3Tsqu2GxXS2wb3oJJpUky2fLaBxaSIRJjRwZGq88ouhxGimT1wfNTJ3KGSvl1asATzcYRkB5T1KIsquSErGmBHCPiiHg11Xwf7w4HcY0X0BGOFmm6rsuagoTbQgGJFtku60An-_JBEt4vxfGFPcLpCOjrlAPYXKTqtHWXIMW9wWj59A
-        #        # song_id: 5EWPGh7jbTNO2wakv8LjUI
-        #        auth_manager.get_access_token(
-        #            "AQDM8VU4LOI1HP4zjjVvQj29LnIECvW3EDaEObFcpIsWKKOPO57O_gUWG-ISUT3ra5lPsXa7CjGFTFdq7ZcAG6vyeymCER_DofV3kt_V6AHAoJ6YOVOXJZpCVLpbvmnPHk9netrwOP13BI6r1ydF555vsPZ0WXE4qLlP816I_MF0NbZ8BUthUnYS0qjiTsJfU_ucp7R0h_PVlvF6TC1ad9MjK78qzsQ_VZ1gMeRf-weO-gHsN8ReuPeby-Vv4JBAy7znwoioL8cxpt11qVzl-69TdCs4icMz8R4fkk123YtMeAQpsMReSDRCaSKidKULwFQThNBRjIpQRTA"
-        #        )
-        #
-        #        print("CONFIRM access token", file=sys.stderr)
-        #        spotify2 = spotipy.Spotify(auth_manager=auth_manager)
-        #
-        #        print("CONFIRM spotipy2", file=sys.stderr)
-        #        print(request.json, file=sys.stderr)
-        # print(f'CONFIRM song URI: {request.json["song_uri"]}', file=sys.stderr)
-        # results = spotify2.playlist_add_items(
-        #     "6bMWOcbmA9X1sl30boENAD", request.json["song_uri"]
-        # )
-        # results = spotify2.playlist_add_items(
-        #     "6bMWOcbmA9X1sl30boENAD", "spotify%3Atrack%3A5EWPGh7jbTNO2wakv8LjUI"
-        # )
-
-        # uri: spotify:track:1MY8GBPEOCVa2tuOWHngZc
         print("1", file=sys.stderr)
-        cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+        cache_handler = spotipy.cache_handler.CacheFileHandler(
+            cache_path=session_cache_path())
         print("2", file=sys.stderr)
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
         print("3", file=sys.stderr)
@@ -147,7 +106,7 @@ def create_app(test_config=None):
         spotify2 = spotipy.Spotify(auth_manager=auth_manager)
         print("5", file=sys.stderr)
         results = spotify2.playlist_add_items(
-            "6bMWOcbmA9X1sl30boENAD", ["1MY8GBPEOCVa2tuOWHngZc"]
+            "6bMWOcbmA9X1sl30boENAD", [request.json["song_uri"]]
         )
         print(results, file=sys.stderr)
 
