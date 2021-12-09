@@ -37,7 +37,8 @@ export default {
       try {
         const response = await axios
           .post(
-            "http://0.0.0.0/search",
+            "http://localhost/search",
+            // "http://0.0.0.0/search",
             {
               query_string: this.$data.spotify_body,
               limit: 7,
@@ -59,7 +60,8 @@ export default {
     song_confirm: async function(song_uri) {
       await axios
         .post(
-          "http://0.0.0.0/confirm",
+          "http://localhost/confirm",
+          // "http://0.0.0.0/confirm",
           {
             song_uri: song_uri, // (some way to grab the clicked-on song name goes here),
           },
