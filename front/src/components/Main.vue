@@ -34,7 +34,6 @@ export default {
         const response = await axios
           .post(
             "http://localhost/search",
-            // "http://0.0.0.0/search",
             {
               query_string: this.$data.spotify_body,
               limit: 7,
