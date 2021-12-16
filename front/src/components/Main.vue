@@ -29,14 +29,18 @@ export default {
     };
   },
   methods: {
-    song_search: async function () {
+    song_search: async function() {
       try {
         const response = await axios
-          .post("http://0.0.0.0/search", {
-            query_string: this.$data.spotify_body,
-            limit: 7,
-          })
-          .catch(function (error) {
+          .post(
+            "http://localhost/search",
+            {
+              query_string: this.$data.spotify_body,
+              limit: 7,
+            },
+            { withCredentials: true }
+          )
+          .catch(function(error) {
             console.log(error);
           });
         console.log("RESPONSE");

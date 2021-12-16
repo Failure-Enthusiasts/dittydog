@@ -1,6 +1,6 @@
 version: "3"
 services:
-  zendesk-language-detector:
+  dittydog-backend:
     image: spotify-backend
     build:
       dockerfile: Dockerfile
