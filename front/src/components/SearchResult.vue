@@ -38,3 +38,11 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+#search-results{
+  border-style: solid;
+  border-radius: 10px;
+  border-width: 3px;
+}
+</style>
