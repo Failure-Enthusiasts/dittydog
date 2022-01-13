@@ -9,7 +9,7 @@
         <SearchResult v-bind:results_arr="search_results" v-if="search_mode_on" v-on:addsong="search_mode_on = false, spotify_body = ''"></SearchResult>
       </div>
       <div id="playlist-wrapper">
-        <Playlist v-bind:results_arr="search_results"></Playlist>
+        <Playlist v-bind:results_arr="playlist"></Playlist>
       </div>
     </div>
   </div>
@@ -33,7 +33,26 @@ export default {
       spotify_body: "",
       search_results: "",
       search_mode_on: false,
+      playlist: "",
     };
+  },
+  async mounted() {
+    try {
+      const response = await axios
+          .get(
+              "http://localhost/get_playlist",
+              { withCredentials: true }
+          )
+          .catch(function(error) {
+            console.log(error);
+          });
+      console.log("PLAYLIST RESPONSE");
+      console.log(response.data);
+      this.playlist = response.data;
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
   },
   methods: {
     song_search: async function() {

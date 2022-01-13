@@ -61,14 +61,29 @@ def create_app():
                 "duration": x["duration_ms"],
                 "img_link": x["album"]["images"][0]["url"],
             },
-            results["tracks"]["items"],
+            results,
+        )
+        test_names_arr = json.dumps(list(test_names_arr))
+        return test_names_arr
+
+    def playlist_parsing(results):
+        test_names_arr = map(
+            lambda x: {
+                "song_name": x["track"]["name"],
+                "song_id": x["track"]["id"],
+                "song_uri": x["track"]["uri"],
+                "album_name": x["track"]["album"]["name"],
+                "artist_name": x["track"]["artists"][0]["name"],
+                "duration": x["track"]["duration_ms"],
+                "img_link": x["track"]["album"]["images"][0]["url"],
+            },
+            results,
         )
         test_names_arr = json.dumps(list(test_names_arr))
         return test_names_arr
 
 
     @app.route("/search", methods=["POST"])
-    @cross_origin(supports_credentials=True)
     def search():
         if "query_string" not in request.json or request.json["query_string"] == "":
             return "bad request!", 400
@@ -78,11 +93,10 @@ def create_app():
 
         # TODO: update this so the token is retrieved in each API call like it is in confirm
         results = spotify.search(q=text, type="track", limit=limit)
-        return search_result_parsing(results)
+        return search_result_parsing(results["tracks"]["items"])
 
 
     @app.route("/confirm", methods=["POST"])
-    @cross_origin(supports_credentials=True)
     def confirm():
         cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
@@ -92,5 +106,17 @@ def create_app():
         results = spotify2.playlist_add_items("6bMWOcbmA9X1sl30boENAD", [request.json["song_uri"]])
 
         return "very very gooooood request", 200
+
+    @app.route("/get_playlist", methods=["GET"])
+    def get_playlist():
+        cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            return redirect('/')
+        spotify2 = spotipy.Spotify(auth_manager=auth_manager)
+        results = spotify2.playlist_tracks("6bMWOcbmA9X1sl30boENAD")
+        print(playlist_parsing(results["items"]))
+
+        return playlist_parsing(results["items"])
 
     return app

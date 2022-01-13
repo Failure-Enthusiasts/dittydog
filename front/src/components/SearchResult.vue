@@ -44,5 +44,6 @@ export default {
   border-style: solid;
   border-radius: 10px;
   border-width: 3px;
+  background-color: lightyellow;
 }
 </style>
