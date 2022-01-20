@@ -45,5 +45,6 @@ export default {
   border-radius: 10px;
   border-width: 3px;
   background-color: lightyellow;
+  text-align: left
 }
 </style>
