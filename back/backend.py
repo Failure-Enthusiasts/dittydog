@@ -52,6 +52,7 @@ def playlist_parsing(results):
 
 def find_index(song_uri):
     global internal_playlist
+    print(internal_playlist, file=sys.stderr)
     for i in range(len(internal_playlist)):
         if internal_playlist[i]["song_uri"] == song_uri:
             return i
@@ -150,9 +151,24 @@ def create_app():
     # vote endpoint expects a json object with 2 attributes `vote_direction` and `song_uri`
     @app.route("/vote", methods=["POST"])
     def vote():
-        print(request.json, file=sys.stderr)
+        # note: add function for lines 155-159 to init spotify2
+        cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            return redirect('/')
+        spotify2 = spotipy.Spotify(auth_manager=auth_manager)
+
+        # print(request.json, file=sys.stderr)
+        print(request.json["song_uri"], file=sys.stderr)
         target_index = find_index(request.json["song_uri"])
+        print(target_index, file=sys.stderr)
         update_song_vote(target_index, request.json["vote_direction"])
+        global internal_playlist
+        internal_playlist = sorted(internal_playlist, key=lambda item: item["vote_count"], reverse = True)
+        #takes the selected song from the frontend response and adds it to spotify playlist
+        spotify2.playlist_replace_items("6bMWOcbmA9X1sl30boENAD", internal_playlist)
+        return internal_playlist
+        
         ## this function will :
         # 1. perform the internal playlist resorting 
         #   oneliner for resorting
@@ -161,4 +177,10 @@ def create_app():
         # 3. return the resorted internal playlist back to the front 
         #return recalc_internal_playlist()
 
+
+        # test vote: curl --request POST http://localhost/vote --header 'Content-Type: application/json' --data-raw '{"song_uri":"spotify:track:1L7cboO1Tw8tdsnvJJe4Mg","vote_direction":"up"}'
+        # reminder: we must authorize http://localhost/ and agree before making requests
+
     return app
+
+
