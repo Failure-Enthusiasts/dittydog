@@ -9,7 +9,7 @@
         <SearchResult v-bind:results_arr="search_results" v-if="search_mode_on" v-on:addsong="search_mode_on = false, spotify_body = ''"></SearchResult>
       </div>
       <div id="playlist-wrapper">
-        <Playlist v-bind:results_arr="playlist"></Playlist>
+        <Playlist v-bind:results_arr="playlist" v-on:playlist_reupdate="update_playlist_pls"></Playlist>
       </div>
     </div>
   </div>
@@ -79,7 +79,13 @@ export default {
         console.log(error);
       }
     },
+    update_playlist_pls: function(value){
+      console.log("received updated playlist in main")
+      console.log(value);
+      this.playlist = value;
+    },
   },
+  
 };
 </script>
 
