@@ -1,6 +1,7 @@
 <template>
   <div>
     <Button class="voting-results" arrow_icon="up" @click="vote(song_uri,'up')"></Button>
+    <p>{{ vote_count }}</p>
     <Button class="voting-results" arrow_icon="down" @click="vote(song_uri, 'down')"></Button>
     <SongItem
       class="voting-results"
@@ -24,7 +25,8 @@ export default {
     artist_name: String,
     album_name: String,
     album_url: String,
-    song_uri: String
+    song_uri: String,
+    vote_count: String
   },
   // vote_direction and song_uri, as JSON (endoint = /vote)
   // fIXME: Bring song_uri to button level!
@@ -32,7 +34,7 @@ export default {
     vote: async function  (song_uri, vote_direction) {
       console.log(song_uri)
       console.log(vote_direction)
-      await axios
+      const response = await axios
         .post(
           "http://localhost/vote",
           {
@@ -44,7 +46,9 @@ export default {
         .catch(function (error) {
           console.log(error);
         });
-      
+      console.log(response.data);
+      this.$emit('playlist_updated', response.data);
+      // this.$emit('playlist_updated');
     },
   },
 };
