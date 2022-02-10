@@ -1,12 +1,12 @@
 <template>
   <div>
 
-    <div class="voting-components">
-      <Button class="vote-button" arrow_icon="up" @click="vote(song_uri,'up')"></Button>
+    <div class="voting-components"  @click="vote(song_uri,'up')">
+      <Button class="vote-button" arrow_icon="up"></Button>
     </div>
       <div  class="vote_count"><p>{{ vote_count }}</p></div>
-      <div class="voting-components">
-      <Button class="vote-button" arrow_icon="down" @click="vote(song_uri, 'down')"></Button>
+      <div class="voting-components" @click="vote(song_uri, 'down')">
+      <Button class="vote-button" arrow_icon="down"></Button>
     </div>
     <SongItem
       class="voting-results"
