@@ -33,7 +33,7 @@ export default {
       spotify_body: "",
       search_results: "",
       search_mode_on: false,
-      playlist: "",
+      playlist: [],
     };
   },
   async mounted() {

@@ -21,12 +21,13 @@ import axios from "axios";
 export default {
   components: { SongItem, Button },
   props: {
+    song_id: String,
     song_name: String,
     artist_name: String,
     album_name: String,
     album_url: String,
     song_uri: String,
-    vote_count: String
+    vote_count: Number
   },
   // vote_direction and song_uri, as JSON (endoint = /vote)
   // fIXME: Bring song_uri to button level!
