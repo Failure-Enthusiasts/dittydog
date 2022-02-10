@@ -22,7 +22,6 @@ import Playlist from "./Playlist";
 export default {
   name: "Main",
   components: {SearchResult, Playlist},
-  // components: {SearchResult},
   props: {
     test: String,
     results_arr: Array,

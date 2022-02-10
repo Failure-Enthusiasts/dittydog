@@ -1,8 +1,13 @@
 <template>
   <div>
-    <Button class="voting-results" arrow_icon="up" @click="vote(song_uri,'up')"></Button>
-    <p>{{ vote_count }}</p>
-    <Button class="voting-results" arrow_icon="down" @click="vote(song_uri, 'down')"></Button>
+
+    <div class="voting-components">
+      <Button class="vote-button" arrow_icon="up" @click="vote(song_uri,'up')"></Button>
+    </div>
+      <div  class="vote_count"><p>{{ vote_count }}</p></div>
+      <div class="voting-components">
+      <Button class="vote-button" arrow_icon="down" @click="vote(song_uri, 'down')"></Button>
+    </div>
     <SongItem
       class="voting-results"
       :key="song_id"
@@ -58,5 +63,27 @@ export default {
 <style scoped>
 .voting-results {
   display: inline-block;
+  background-color: rgba(0,0,0,0.05);
+  color: black;
+  border-radius: 20px;
 }
+.vote-button {
+  display: inline-block;
+  padding: 0;
+}
+.vote_count {
+  display: inline-block;
+  margin: 0;
+  vertical-align: middle;
+  padding: 0;
+}
+div {
+  padding: 10px;
+}
+.voting-components {
+  padding: 10px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 </style>
