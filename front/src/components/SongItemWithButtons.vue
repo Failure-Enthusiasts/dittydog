@@ -53,7 +53,7 @@ export default {
           console.log(error);
         });
       console.log(response.data);
-      this.$emit('playlist_updated', response.data);
+      this.$emit('playlist_updated_child', response.data);
       // this.$emit('playlist_updated');
     },
   },

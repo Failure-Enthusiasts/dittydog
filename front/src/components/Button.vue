@@ -18,5 +18,6 @@ export default {
 img {
   display: inline-block;
   margin: 0;
+  cursor: pointer;
 }
 </style>
