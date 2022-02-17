@@ -8,7 +8,7 @@
       v-bind:album_url="search_result.img_link"
       v-bind:song_uri="search_result.song_uri"
       v-bind:vote_count="search_result.vote_count"
-      v-on:playlist_updated="update_playlist"
+      v-on:playlist_updated_child="playlist_update"
     >
     </SongItemWithButtons>
   </div>
@@ -22,8 +22,8 @@ export default {
     results_arr: Array,
   },
   methods: {
-    update_playlist: function(value) {
-      this.$emit('playlist_reupdate', value);
+    playlist_update: function(value) {
+      this.$emit('playlist_update', value);
     },
   },
 };

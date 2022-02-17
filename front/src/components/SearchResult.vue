@@ -31,7 +31,7 @@ export default {
         .catch(function (error) {
           console.log(error);
         });
-      this.$emit('playlist_reupdate', response.data);
+      this.$emit('playlist_update', response.data);
     },
   },
 };
