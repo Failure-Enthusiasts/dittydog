@@ -23,7 +23,7 @@ export default {
   methods: {
     song_confirm: async function (search_res) {
       this.$emit("addsong");
-      await axios
+      const response = await axios
         .post(
           "http://localhost/confirm", search_res,
           { withCredentials: true }
@@ -31,6 +31,7 @@ export default {
         .catch(function (error) {
           console.log(error);
         });
+      this.$emit('playlist_reupdate', response.data);
     },
   },
 };
