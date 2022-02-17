@@ -22,7 +22,6 @@ import Playlist from "./Playlist";
 export default {
   name: "Main",
   components: {SearchResult, Playlist},
-  // components: {SearchResult},
   props: {
     test: String,
     results_arr: Array,
@@ -33,7 +32,7 @@ export default {
       spotify_body: "",
       search_results: "",
       search_mode_on: false,
-      playlist: "",
+      playlist: [],
     };
   },
   async mounted() {

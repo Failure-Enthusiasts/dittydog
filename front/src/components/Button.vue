@@ -1,9 +1,9 @@
 <template>
-  <div>
     <!-- <p style="font-size: 25px">{{ arrow_icon }};</p> -->
-    <p v-if="arrow_icon == 'up'"> &#128314; </p>
-    <p v-if="arrow_icon == 'down'"> &#128315; </p>
-  </div>
+    <div>
+      <img v-if="arrow_icon == 'up'" src="@/assets/thumb_icon.svg" style="padding-bottom:10px; padding-right:5px;">
+      <img v-if="arrow_icon == 'down'" src="@/assets/thumb_down_icon.svg" style="transform: scaleY(-1); padding-bottom:10px; padding-right:10px;">
+    </div>
 </template>
 
 <script>
@@ -16,17 +16,7 @@ export default {
 
 <style scoped>
 img {
-  width: 40px;
   display: inline-block;
-  vertical-align: middle;
-  padding-right: 10px;
-}
-.itemwrapper {
-  display: inline;
-  font-size: 25px;
-  vertical-align: middle;
-}
-div {
-  padding: 10px;
+  margin: 0;
 }
 </style>

@@ -24,8 +24,8 @@ img {
   width:40px;
   display: inline-block;
   vertical-align: middle;
-  padding-right: 10px;
-
+  margin-right: 10px;
+  border-radius: 20px;
 }
 .itemwrapper {
   display: inline;
