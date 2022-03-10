@@ -63,6 +63,60 @@ def build_internal_playlist():
     results = spotify.playlist_tracks("6bMWOcbmA9X1sl30boENAD")
     global internal_playlist
     internal_playlist = playlist_parsing(results["items"])
+    print('\nINTERNAL PLAYLIST\n\n:' + str(results), file=sys.stderr)
+
+
+def playing_song_status():
+    spotify = get_spotify_api_client()
+    current_song = spotify.currently_playing(market=None, additional_types=None)
+    print("CURRENTLY PLAYING:\n" + str(current_song), file=sys.stderr)
+
+    playing_song = {}
+    # current_song
+    playing_song['song_uri'] = current_song['item']['uri']
+
+    # current playing?
+    playing_song['is_playing'] = current_song['is_playing']
+
+    # time remaining?
+    playing_song['time_remaining'] = current_song['item']['duration_ms'] - current_song['progress_ms']
+    playing_song['half_played'] = 0.5 < (current_song['progress_ms'] / current_song['item']['duration_ms'])
+    
+    return playing_song
+    
+    
+
+    # import pdb
+    # pdb.set_trace()
+    # pass
+
+def polling_function():
+    playing_song_status = playing_song_status()
+
+    # freeze upcoming song
+        # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
+
+    # trigger the "delete played songs" action
+
+
+    # assumptions we're making:
+    # - top song is frozen in place at some trigger (not implimented)
+    # - want to delete songs that have already been played. Either at voting time, or at some polling interval (requires polling what song status is)
+    # - polling interval needs to be as frequent as "freeze next song" interval to avoid votes on pruned songs
+
+
+def playlist_cleanup(self):
+
+    pass
+    # make the api call to see what's playing
+    
+
+    # grab the internal playlist, see where that song falls in the list
+
+    # pop any songs that have played already
+
+    # update the Spotify playlist to reflect that
+        
 
 def sort_playlist(spotify):
     global internal_playlist
@@ -167,6 +221,8 @@ def create_app():
         
         spotify = get_spotify_api_client()
         sort_playlist(spotify)        
+
+        get_current_playing_song()
 
         return json.dumps(internal_playlist)
     return app
