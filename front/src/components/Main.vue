@@ -1,8 +1,8 @@
 <template>
-  <div class="main-grid">
+  <div class="main-grid" v-on:click="event => exit_search(event)">
     <h1 id="title">{{ msg2 }}</h1>
     <div id="search-wrapper">
-      <input v-model="spotify_body" @keyup.enter="song_search" placeholder="enter song name" id="search-bar"/>
+      <input v-model="spotify_body" @keyup="song_search" placeholder="enter song name" id="search-bar"/>
     </div>
     <div id="wrapper-wrapper">
       <div id="result-wrapper">
@@ -55,27 +55,31 @@ export default {
   },
   methods: {
     song_search: async function() {
-      try {
-        const response = await axios
-          .post(
-            "http://localhost/search",
-            {
-              query_string: this.$data.spotify_body,
-              limit: 7,
-            },
-            { withCredentials: true }
-          )
-          .catch(function(error) {
-            console.log(error);
-          });
-        console.log("RESPONSE");
-        console.log(response.data);
-        console.log("SEARCH TERM: " + this.$data.spotify_body);
-        this.search_results = response.data;
-        this.search_mode_on = true;
-        return response.data;
-      } catch (error) {
-        console.log(error);
+      console.log("SEARCH TERM: " + this.$data.spotify_body);
+      if (this.$data.spotify_body != ""){
+        try {
+          const response = await axios
+            .post(
+              "http://localhost/search",
+              {
+                query_string: this.$data.spotify_body,
+                limit: 7,
+              },
+              { withCredentials: true }
+            )
+            .catch(function(error) {
+              console.log(error);
+            });
+          console.log("RESPONSE");
+          console.log(response.data);
+          this.search_results = response.data;
+          this.search_mode_on = true;
+          return response.data;
+        } catch (error) {
+          console.log(error);
+        }
+      } else {
+        this.search_mode_on = false;
       }
     },
     update_playlist_pls: function(value){
@@ -83,6 +87,11 @@ export default {
       console.log(value);
       this.playlist = value;
     },
+    exit_search: function(e){
+      if(e.target.id != 'search-bar') {
+        this.search_mode_on = false;
+      }
+    }
   },
   
 };
