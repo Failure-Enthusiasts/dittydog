@@ -71,6 +71,8 @@ def playing_song_status():
     current_song = spotify.currently_playing(market=None, additional_types=None)
     print("CURRENTLY PLAYING:\n" + str(current_song), file=sys.stderr)
 
+    if not current_song:
+        return
     playing_song = {}
     # current_song
     playing_song['song_uri'] = current_song['item']['uri']
@@ -83,22 +85,32 @@ def playing_song_status():
     playing_song['half_played'] = 0.5 < (current_song['progress_ms'] / current_song['item']['duration_ms'])
     
     return playing_song
-    
-    
-
     # import pdb
     # pdb.set_trace()
     # pass
 
-def polling_function():
-    playing_song_status = playing_song_status()
+def freeze_upcoming_song():
+    global internal_playlist
+    internal_playlist[1]['locked'] = True
+    return internal_playlist[1]['song_uri']
 
+# any song containing the `locked` attribute that isn't currently playing or upcoming_song is removed from internal_playlist (assuming that these have already been played)
+def prune(prune_these):
+    return
+
+def polling_function():
+    playing_song = playing_song_status()
+    print(playing_song, file=sys.stderr)
+    
     # freeze upcoming song
         # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
+    if playing_song['half_played'] or playing_song['time_remaining'] < 30000:
+        upcoming_song_id = freeze_upcoming_song()
+        # needs to be tested
+        enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
+        prune(enqueued_songs)
 
     # trigger the "delete played songs" action
-
-
     # assumptions we're making:
     # - top song is frozen in place at some trigger (not implimented)
     # - want to delete songs that have already been played. Either at voting time, or at some polling interval (requires polling what song status is)
@@ -109,12 +121,8 @@ def playlist_cleanup(self):
 
     pass
     # make the api call to see what's playing
-    
-
     # grab the internal playlist, see where that song falls in the list
-
     # pop any songs that have played already
-
     # update the Spotify playlist to reflect that
         
 
@@ -222,7 +230,7 @@ def create_app():
         spotify = get_spotify_api_client()
         sort_playlist(spotify)        
 
-        get_current_playing_song()
+        polling_function()
 
         return json.dumps(internal_playlist)
     return app
