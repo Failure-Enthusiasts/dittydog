@@ -1,6 +1,7 @@
 <template>
   <div id="search-results">
     <SongItem
+        class="songItemDiv"
       v-for="search_result in results_arr"
       :key="search_result.song_id"
       @click="song_confirm(search_result)"
@@ -38,11 +39,14 @@ export default {
 </script>
 
 <style scoped>
+.songItemDiv {
+  cursor: pointer;
+}
 #search-results{
   border-style: solid;
   border-radius: 10px;
   border-width: 3px;
   background-color: lightyellow;
-  text-align: left
+  text-align: left;
 }
 </style>
