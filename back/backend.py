@@ -42,7 +42,8 @@ def playlist_parsing(results):
             "artist_name": x["track"]["artists"][0]["name"],
             "duration": x["track"]["duration_ms"],
             "img_link": x["track"]["album"]["images"][0]["url"],
-            "vote_count": 0
+            "vote_count": 0,
+            "locked": False
         },
         results,
     )
@@ -69,7 +70,7 @@ def build_internal_playlist():
 def playing_song_status():
     spotify = get_spotify_api_client()
     current_song = spotify.currently_playing(market=None, additional_types=None)
-    print("CURRENTLY PLAYING:\n" + str(current_song), file=sys.stderr)
+    # print("CURRENTLY PLAYING:\n" + str(current_song), file=sys.stderr)
 
     if not current_song:
         return
@@ -91,15 +92,30 @@ def playing_song_status():
 
 def freeze_upcoming_song():
     global internal_playlist
+    # internal_playlist[0]['locked'] = True
     internal_playlist[1]['locked'] = True
+    # internal_playlist[2]['locked'] = True
     return internal_playlist[1]['song_uri']
 
 # any song containing the `locked` attribute that isn't currently playing or upcoming_song is removed from internal_playlist (assuming that these have already been played)
-def prune(prune_these):
+def prune(enqueued_songs):
+    print(str(enqueued_songs), file=sys.stderr)
+    spotify = get_spotify_api_client()
+    prune_these = []
+    global internal_playlist
+    for song in internal_playlist:
+        if song['locked'] and song['song_uri'] not in enqueued_songs:
+            prune_these.append(song['song_uri'])
+            internal_playlist.remove(song)
+    if len(prune_these) != 0:
+        print('PRUNING', file=sys.stderr)
+        spotify = get_spotify_api_client()
+        spotify.playlist_remove_all_occurrences_of_items("6bMWOcbmA9X1sl30boENAD", prune_these)
     return
 
 def polling_function():
     playing_song = playing_song_status()
+    ## if none return
     print(playing_song, file=sys.stderr)
     
     # freeze upcoming song
