@@ -53,6 +53,7 @@ def find_index(song_uri):
     for i in range(len(internal_playlist)):
         if internal_playlist[i]["song_uri"] == song_uri:
             return i
+    return None
 
 def update_song_vote(ind, dir):
     internal_playlist[ind]['vote_count'] += 1 if (dir == 'up') else -1
@@ -141,7 +142,7 @@ def create_app():
         new_song = request.json
 
         index = find_index(new_song["song_uri"])
-        if (index):
+        if (index is not None):
             # increment vote count if song is already in playlist
             internal_playlist[index]["vote_count"] += 1
         else:
