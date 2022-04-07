@@ -8,6 +8,7 @@ from flask_cors import CORS
 import uuid
 
 internal_playlist = []
+playlist_is_running = False
 
 caches_folder = './.spotify_caches/'
 if not os.path.exists(caches_folder):
@@ -111,7 +112,7 @@ def prune(enqueued_songs):
         print('PRUNING', file=sys.stderr)
         spotify = get_spotify_api_client()
         spotify.playlist_remove_all_occurrences_of_items("6bMWOcbmA9X1sl30boENAD", prune_these)
-    return
+
 
 def polling_function():
     playing_song = playing_song_status()
@@ -122,15 +123,49 @@ def polling_function():
         # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
     if playing_song['half_played'] or playing_song['time_remaining'] < 30000:
         upcoming_song_id = freeze_upcoming_song()
+        
         # needs to be tested
         enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
+        
+        # trigger the "delete played songs" action
         prune(enqueued_songs)
 
-    # trigger the "delete played songs" action
+    
     # assumptions we're making:
-    # - top song is frozen in place at some trigger (not implimented)
-    # - want to delete songs that have already been played. Either at voting time, or at some polling interval (requires polling what song status is)
-    # - polling interval needs to be as frequent as "freeze next song" interval to avoid votes on pruned songs
+    # - [x] top song is frozen in place at some trigger
+        # Timer'd start? How to do
+        # Default vote and song count?
+    # - [x - test though!] want to delete songs that have already been played. Either at voting time, or at some polling interval (requires polling what song status is)
+    # - !!! Implement timer: polling interval needs to be as frequent as "freeze next song" interval to avoid votes on pruned songs
+    
+    # TO DO: make SORT function avoid touching "locked" songs
+
+def start_playing():
+
+    # once 5 votes are on one song, and there are 5 songs in the list, start
+    # will be called in VOTE and CONFIRM endpoints
+    global internal_playlist
+    global playlist_is_running
+
+    if playlist_is_running == False:
+        vote_max = 0
+        for song in internal_playlist:
+            vote_max = max(song['vote_count'], vote_max)
+
+
+        if len(internal_playlist) > 4 and vote_max > 4:
+            playlist_is_running = True
+            # Spotify API call to start playlist running
+            spotify = get_spotify_api_client()
+            spotify.start_playback(context_uri="6bMWOcbmA9X1sl30boENAD")
+            
+            # lock the first song
+            internal_playlist[0]['locked'] = True
+
+
+
+
+
 
 
 def playlist_cleanup(self):
@@ -229,6 +264,7 @@ def create_app():
             spotify.playlist_add_items("6bMWOcbmA9X1sl30boENAD", [request.json["song_uri"]])
         
         sort_playlist(spotify)
+        start_playing()
         return json.dumps(internal_playlist)
 
 
@@ -246,7 +282,9 @@ def create_app():
         spotify = get_spotify_api_client()
         sort_playlist(spotify)        
 
+        start_playing()
         polling_function()
-
+        
+        
         return json.dumps(internal_playlist)
     return app
