@@ -7,8 +7,6 @@ import spotipy
 from flask_cors import CORS
 import uuid
 
-internal_playlist = []
-
 caches_folder = './.spotify_caches/'
 if not os.path.exists(caches_folder):
     os.makedirs(caches_folder)
@@ -61,7 +59,11 @@ def update_song_vote(ind, dir):
 def build_internal_playlist():
     ## TODO: add functionality to build a new playlist or select exisiting playlist
     spotify = get_spotify_api_client()
-    results = spotify.playlist_tracks("6bMWOcbmA9X1sl30boENAD")
+    global playlist_id
+    playlist_id = spotify.user_playlist_create(spotify.current_user()["id"], f'{spotify.current_user()["display_name"]}, USE THE DITTYDOG APP TO ADD SONGS, YOU FOOL!', public=True, collaborative=False, description='')["uri"]
+    results = spotify.playlist_tracks(playlist_id)
+    playlist_id_only = playlist_id.split(':')[2]
+    print(f'Playlist URL: https://open.spotify.com/playlist/{playlist_id_only}', file=sys.stderr)
     global internal_playlist
     internal_playlist = playlist_parsing(results["items"])
 
@@ -74,7 +76,7 @@ def sort_playlist(spotify):
     for i in range(len(internal_playlist)):
         if internal_playlist[i]["song_uri"] != playlist_before_sort[i]["song_uri"]:
             print("made request to Spotify API", file = sys.stderr )
-            spotify.playlist_replace_items("6bMWOcbmA9X1sl30boENAD", map(lambda song: song["song_uri"], internal_playlist))
+            spotify.playlist_replace_items(playlist_id, map(lambda song: song["song_uri"], internal_playlist))
             break
 
 def get_spotify_api_client():
@@ -117,7 +119,7 @@ def create_app():
         build_internal_playlist()
 
         # Step 4. Signed in, display data
-        return redirect('http://localhost:8080')
+        return redirect('http://localhost:8081')
 
 
     @app.route("/search", methods=["POST"])
@@ -149,7 +151,7 @@ def create_app():
             # takes the selected song from the frontend response and adds it to spotify playlist
             new_song['vote_count'] = 1
             internal_playlist.append(new_song)
-            spotify.playlist_add_items("6bMWOcbmA9X1sl30boENAD", [request.json["song_uri"]])
+            spotify.playlist_add_items(playlist_id, [request.json["song_uri"]])
         
         sort_playlist(spotify)
         return json.dumps(internal_playlist)
