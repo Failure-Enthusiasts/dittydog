@@ -119,7 +119,7 @@ def create_app():
         build_internal_playlist()
 
         # Step 4. Signed in, display data
-        return redirect('http://localhost:8081')
+        return redirect('http://localhost:8080')
 
 
     @app.route("/search", methods=["POST"])
