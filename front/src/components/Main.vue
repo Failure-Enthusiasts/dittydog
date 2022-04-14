@@ -1,6 +1,11 @@
 <template>
   <div class="main-grid" v-on:click="event => exit_search(event)">
     <h1 id="title">{{ msg2 }}</h1>
+    <div id="spotify-playlist-button" >
+    <a v-bind:href='playlist_link' target="_blank">
+      <div id="button-text">Start Playing</div>
+    </a>
+    </div>
     <div id="search-wrapper">
       <input v-model="spotify_body" @keyup="song_search" placeholder="enter song name" id="search-bar"/>
     </div>
@@ -27,12 +32,14 @@ export default {
     results_arr: Array,
   },
   data() {
+    var urlParams = new URLSearchParams(window.location.search);
     return {
       msg2: "DittyDog",
       spotify_body: "",
       search_results: "",
       search_mode_on: false,
       playlist: [],
+      playlist_link: `https://open.spotify.com/playlist/${urlParams.get('playlist_id')}`
     };
   },
   async mounted() {
@@ -100,8 +107,25 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
-#title{
+#title { 
   grid-column: 2;
+}
+
+#spotify-playlist-button {
+  grid-column: 2;
+  background-color: #1DB954;
+  width: 50%;
+  padding: 5px;
+  place-self: center;
+  margin: 10px;
+  border-radius: 10px;
+  border-width: 3px;
+  font-family: inherit;
+}
+
+#button-text {
+  font-size: 24px;
+  color: white;
 }
 
 #search-wrapper {
@@ -161,6 +185,7 @@ li {
 }
 a {
   color: #42b983;
+  text-decoration: none;
 }
 
 .main-grid {

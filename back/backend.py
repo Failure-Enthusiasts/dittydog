@@ -66,6 +66,7 @@ def build_internal_playlist():
     print(f'Playlist URL: https://open.spotify.com/playlist/{playlist_id_only}', file=sys.stderr)
     global internal_playlist
     internal_playlist = playlist_parsing(results["items"])
+    return playlist_id_only
 
 def sort_playlist(spotify):
     global internal_playlist
@@ -116,10 +117,10 @@ def create_app():
             return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
         # building internal playlist as part of the default auth flow
-        build_internal_playlist()
+        playlist_id = build_internal_playlist()
 
         # Step 4. Signed in, display data
-        return redirect('http://localhost:8080')
+        return redirect(f'http://localhost:8080/?playlist_id={playlist_id}')
 
 
     @app.route("/search", methods=["POST"])
