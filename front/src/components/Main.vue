@@ -6,6 +6,7 @@
     </div>
     <div id="wrapper-wrapper">
       <div id="result-wrapper">
+        <a href="https://open.spotify.com/playlist/6bMWOcbmA9X1sl30boENAD" target="_blank">Spotify Playlist</a>
         <SearchResult v-bind:results_arr="search_results" v-if="search_mode_on" v-on:addsong="search_mode_on = false, spotify_body = ''" v-on:playlist_update="update_playlist_pls"></SearchResult>
       </div>
       <div id="playlist-wrapper">

@@ -8,6 +8,7 @@
       v-bind:album_url="search_result.img_link"
       v-bind:song_uri="search_result.song_uri"
       v-bind:vote_count="search_result.vote_count"
+      v-bind:locked="search_result.locked"
       v-on:playlist_updated_child="playlist_update"
     >
     </SongItemWithButtons>

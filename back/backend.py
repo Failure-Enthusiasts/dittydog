@@ -118,17 +118,18 @@ def polling_function():
     playing_song = playing_song_status()
     ## if none return
     print(playing_song, file=sys.stderr)
-    
-    # freeze upcoming song
-        # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
-    if playing_song['half_played'] or playing_song['time_remaining'] < 30000:
-        upcoming_song_id = freeze_upcoming_song()
-        
-        # needs to be tested
-        enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
-        
-        # trigger the "delete played songs" action
-        prune(enqueued_songs)
+
+    if playing_song:
+        # freeze upcoming song
+            # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
+        if playing_song['half_played'] or playing_song['time_remaining'] < 30000:
+            upcoming_song_id = freeze_upcoming_song()
+            
+            # needs to be tested
+            enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
+            
+            # trigger the "delete played songs" action
+            prune(enqueued_songs)
 
     
     # assumptions we're making:
@@ -157,16 +158,13 @@ def start_playing():
             playlist_is_running = True
             # Spotify API call to start playlist running
             spotify = get_spotify_api_client()
-            spotify.start_playback(context_uri="6bMWOcbmA9X1sl30boENAD")
-            
+            try:
+                spotify.start_playback(context_uri="6bMWOcbmA9X1sl30boENAD")
+            except:
+                print("Need premium", file=sys.stderr)
             # lock the first song
-            internal_playlist[0]['locked'] = True
-
-
-
-
-
-
+            if internal_playlist is not None:
+                internal_playlist[0]['locked'] = True
 
 def playlist_cleanup(self):
 
