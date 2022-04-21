@@ -272,6 +272,11 @@ def create_app():
     def get_playlist():
         return json.dumps(internal_playlist)
 
+    @app.route("/polling_and_pruning", methods=["POST"])
+    def polling_and_pruning():
+        start_playing()
+        polling_function()
+        return 'Hello Im polling_and_pruning'
 
     # vote endpoint expects a json object with 2 attributes `vote_direction` and `song_uri`
     @app.route("/vote", methods=["POST"])
@@ -282,9 +287,14 @@ def create_app():
         spotify = get_spotify_api_client()
         sort_playlist(spotify)        
 
-        start_playing()
-        polling_function()
+        
         
         
         return json.dumps(internal_playlist)
+        
+
     return app
+
+    
+
+

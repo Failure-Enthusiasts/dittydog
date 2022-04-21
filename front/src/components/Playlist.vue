@@ -9,6 +9,8 @@
       v-bind:song_uri="search_result.song_uri"
       v-bind:vote_count="search_result.vote_count"
       v-on:playlist_updated_child="playlist_update"
+      v-bind:locked="search_result.locked"
+      
     >
     </SongItemWithButtons>
   </div>

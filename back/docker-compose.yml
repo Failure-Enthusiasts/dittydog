@@ -2,14 +2,16 @@ version: "3"
 services:
   dittydog-backend:
     image: spotify-backend
-    build:
-      dockerfile: Dockerfile
-      context: .
+    build: ./api_flask_app
     container_name: spotify-backend
-    env_file: ./.env
+    env_file: ./api_flask_app/.env
     environment:
       - FLASK_APP=backend.py
       - FLASK_ENV=development
       - FLASK_RUN_PORT=8080
     ports:
       - "80:8080"
+  poller-pruner:
+    image: poller-pruner
+    build: ./poller_pruner
+    container_name: poller-pruner
