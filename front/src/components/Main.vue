@@ -1,10 +1,8 @@
-<template>
-  <div class="main-grid" v-on:click="event => exit_search(event)">
+<template >
+  <div @blur="play_song()" tabindex="0" class="main-grid" v-on:click="event => exit_search(event)">
     <h1 id="title">{{ msg2 }}</h1>
-    <div id="spotify-playlist-button" >
-    <a v-bind:href='playlist_link' target="_blank">
-      <div id="button-text">Start Playing</div>
-    </a>
+    <div id="spotify-playlist-button" :class="{ playButtonHidden: play_button_hidden }">
+      <iframe tabindex="1" style="border-radius:12px" :src="'https://open.spotify.com/embed/playlist/' + playlist_id + '?utm_source=generator'" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
     </div>
     <div id="search-wrapper">
       <input v-model="spotify_body" @keyup="song_search" placeholder="enter song name" id="search-bar"/>
@@ -33,17 +31,20 @@ export default {
   },
   data() {
     var urlParams = new URLSearchParams(window.location.search);
+    var playlist_id = urlParams.get('playlist_id');
     return {
       msg2: "DittyDog",
+      play_button_hidden: true,
       spotify_body: "",
       search_results: "",
+      playlist_id: playlist_id,
       search_mode_on: false,
       playlist: [],
       playlist_link: `https://open.spotify.com/playlist/${urlParams.get('playlist_id')}`
     };
   },
   async mounted() {
-    try {
+     try {
       const response = await axios
           .get(
               "http://localhost/get_playlist",
@@ -55,10 +56,12 @@ export default {
       console.log("PLAYLIST RESPONSE");
       console.log(response.data);
       this.playlist = response.data;
+      this.play_button_hidden = this.playlist.length < 5;
       return response.data;
     } catch (error) {
       console.log(error);
     }
+    
   },
   methods: {
     song_search: async function() {
@@ -93,11 +96,30 @@ export default {
       console.log("received updated playlist in main")
       console.log(value);
       this.playlist = value;
+      this.play_button_hidden = value.length < 5;
     },
     exit_search: function(e){
       if(e.target.id != 'search-bar') {
         this.search_mode_on = false;
       }
+    },
+    play_song: async function(){
+      console.log("hit play")
+      try {
+          const response = await axios
+            .post(
+              "http://localhost/user_started_play",
+              { withCredentials: true }
+            )
+            .catch(function(error) {
+              console.log(error);
+            });
+          console.log("RESPONSE");
+          console.log(response)
+          return
+        } catch (error) {
+          console.log(error);
+        }
     }
   },
   
@@ -113,14 +135,14 @@ export default {
 
 #spotify-playlist-button {
   grid-column: 2;
-  background-color: #1DB954;
-  width: 50%;
-  padding: 5px;
+  /*background-color: #1DB954;*/
+  width: 80px;
+  /*padding: 5px;*/
   place-self: center;
-  margin: 10px;
-  border-radius: 10px;
-  border-width: 3px;
-  font-family: inherit;
+  /*margin: 10px;*/
+  /*border-radius: 10px;*/
+  /*border-width: 3px;*/
+  /*font-family: inherit;*/
 }
 
 #button-text {
@@ -192,5 +214,15 @@ a {
   display: grid;
   grid-template-columns: 10vw 80vw 10vw;
   /* grid-row-gap: 50px; */
+}
+
+#hiding-box{
+  height: 50px;
+  width: 100px;
+  color: red;
+}
+
+.playButtonHidden {
+  display: none
 }
 </style>
