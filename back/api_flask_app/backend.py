@@ -68,68 +68,68 @@ def build_internal_playlist():
     print('\nINTERNAL PLAYLIST\n\n:' + str(results), file=sys.stderr)
 
 
-def playing_song_status():
-    spotify = get_spotify_api_client()
-    current_song = spotify.currently_playing(market=None, additional_types=None)
-    # print("CURRENTLY PLAYING:\n" + str(current_song), file=sys.stderr)
+# def playing_song_status():
+#     spotify = get_spotify_api_client()
+#     current_song = spotify.currently_playing(market=None, additional_types=None)
+#     # print("CURRENTLY PLAYING:\n" + str(current_song), file=sys.stderr)
 
-    if not current_song:
-        return
-    playing_song = {}
-    # current_song
-    playing_song['song_uri'] = current_song['item']['uri']
+#     if not current_song:
+#         return
+#     playing_song = {}
+#     # current_song
+#     playing_song['song_uri'] = current_song['item']['uri']
 
-    # current playing?
-    playing_song['is_playing'] = current_song['is_playing']
+#     # current playing?
+#     playing_song['is_playing'] = current_song['is_playing']
 
-    # time remaining?
-    playing_song['time_remaining'] = current_song['item']['duration_ms'] - current_song['progress_ms']
-    playing_song['half_played'] = 0.5 < (current_song['progress_ms'] / current_song['item']['duration_ms'])
+#     # time remaining?
+#     playing_song['time_remaining'] = current_song['item']['duration_ms'] - current_song['progress_ms']
+#     playing_song['half_played'] = 0.5 < (current_song['progress_ms'] / current_song['item']['duration_ms'])
     
-    return playing_song
-    # import pdb
-    # pdb.set_trace()
-    # pass
+#     return playing_song
+#     # import pdb
+#     # pdb.set_trace()
+#     # pass
 
-def freeze_upcoming_song():
-    global internal_playlist
-    # internal_playlist[0]['locked'] = True
-    internal_playlist[1]['locked'] = True
-    # internal_playlist[2]['locked'] = True
-    return internal_playlist[1]['song_uri']
+# def freeze_upcoming_song():
+#     global internal_playlist
+#     # internal_playlist[0]['locked'] = True
+#     internal_playlist[1]['locked'] = True
+#     # internal_playlist[2]['locked'] = True
+#     return internal_playlist[1]['song_uri']
 
-# any song containing the `locked` attribute that isn't currently playing or upcoming_song is removed from internal_playlist (assuming that these have already been played)
-def prune(enqueued_songs):
-    print(str(enqueued_songs), file=sys.stderr)
-    spotify = get_spotify_api_client()
-    prune_these = []
-    global internal_playlist
-    for song in internal_playlist:
-        if song['locked'] and song['song_uri'] not in enqueued_songs:
-            prune_these.append(song['song_uri'])
-            internal_playlist.remove(song)
-    if len(prune_these) != 0:
-        print('PRUNING', file=sys.stderr)
-        spotify = get_spotify_api_client()
-        spotify.playlist_remove_all_occurrences_of_items("6bMWOcbmA9X1sl30boENAD", prune_these)
+# # any song containing the `locked` attribute that isn't currently playing or upcoming_song is removed from internal_playlist (assuming that these have already been played)
+# def prune(enqueued_songs):
+#     print(str(enqueued_songs), file=sys.stderr)
+#     spotify = get_spotify_api_client()
+#     prune_these = []
+#     global internal_playlist
+#     for song in internal_playlist:
+#         if song['locked'] and song['song_uri'] not in enqueued_songs:
+#             prune_these.append(song['song_uri'])
+#             internal_playlist.remove(song)
+#     if len(prune_these) != 0:
+#         print('PRUNING', file=sys.stderr)
+#         spotify = get_spotify_api_client()
+#         spotify.playlist_remove_all_occurrences_of_items("6bMWOcbmA9X1sl30boENAD", prune_these)
 
 
-def polling_function():
-    playing_song = playing_song_status()
-    ## if none return
-    print(playing_song, file=sys.stderr)
+# def polling_function():
+#     playing_song = playing_song_status()
+#     ## if none return
+#     print(playing_song, file=sys.stderr)
 
-    if playing_song:
-        # freeze upcoming song
-            # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
-        if playing_song['half_played'] or playing_song['time_remaining'] < 30000:
-            upcoming_song_id = freeze_upcoming_song()
+#     if playing_song:
+#         # freeze upcoming song
+#             # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
+#         if playing_song['half_played'] or playing_song['time_remaining'] < 30000:
+#             upcoming_song_id = freeze_upcoming_song()
             
-            # needs to be tested
-            enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
+#             # needs to be tested
+#             enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
             
-            # trigger the "delete played songs" action
-            prune(enqueued_songs)
+#             # trigger the "delete played songs" action
+#             prune(enqueued_songs)
 
     
     # assumptions we're making:
@@ -141,39 +141,39 @@ def polling_function():
     
     # TO DO: make SORT function avoid touching "locked" songs
 
-def start_playing():
+# def start_playing():
 
-    # once 5 votes are on one song, and there are 5 songs in the list, start
-    # will be called in VOTE and CONFIRM endpoints
-    global internal_playlist
-    global playlist_is_running
+#     # once 5 votes are on one song, and there are 5 songs in the list, start
+#     # will be called in VOTE and CONFIRM endpoints
+#     global internal_playlist
+#     global playlist_is_running
 
-    if playlist_is_running == False:
-        vote_max = 0
-        for song in internal_playlist:
-            vote_max = max(song['vote_count'], vote_max)
+#     if playlist_is_running == False:
+#         vote_max = 0
+#         for song in internal_playlist:
+#             vote_max = max(song['vote_count'], vote_max)
 
 
-        if len(internal_playlist) > 4 and vote_max > 4:
-            playlist_is_running = True
-            # Spotify API call to start playlist running
-            spotify = get_spotify_api_client()
-            try:
-                spotify.start_playback(context_uri="6bMWOcbmA9X1sl30boENAD")
-            except:
-                print("Need premium", file=sys.stderr)
-            # lock the first song
-            if internal_playlist is not None:
-                internal_playlist[0]['locked'] = True
+#         if len(internal_playlist) > 4 and vote_max > 4:
+#             playlist_is_running = True
+#             # Spotify API call to start playlist running
+#             spotify = get_spotify_api_client()
+#             try:
+#                 spotify.start_playback(context_uri="6bMWOcbmA9X1sl30boENAD")
+#             except:
+#                 print("Need premium", file=sys.stderr)
+#             # lock the first song
+#             if internal_playlist is not None:
+#                 internal_playlist[0]['locked'] = True
 
-def playlist_cleanup(self):
+def polling_and_pruning_outsourced():
+    spotify = get_spotify_api_client()
 
-    pass
-    # make the api call to see what's playing
-    # grab the internal playlist, see where that song falls in the list
-    # pop any songs that have played already
-    # update the Spotify playlist to reflect that
-        
+    things_to_pass = [
+        spotify
+    
+    
+    ]
 
 def sort_playlist(spotify):
     global internal_playlist
@@ -270,11 +270,11 @@ def create_app():
     def get_playlist():
         return json.dumps(internal_playlist)
 
-    @app.route("/polling_and_pruning", methods=["POST"])
-    def polling_and_pruning():
-        # start_playing()
-        # polling_function()
-        return json.dumps({'message':'Hello Im polling_and_pruning'})
+    # @app.route("/polling_and_pruning", methods=["POST"])
+    # def polling_and_pruning():
+    #     # start_playing()
+    #     # polling_function()
+    #     return json.dumps({'message':'Hello Im polling_and_pruning'})
 
     # vote endpoint expects a json object with 2 attributes `vote_direction` and `song_uri`
     @app.route("/vote", methods=["POST"])
