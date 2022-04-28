@@ -1,15 +1,20 @@
 <template>
   <div>
-
-    <div class="voting-components"  @click="vote(song_uri,'up')">
+     <div v-if="locked" class="voting-components">
+      <Button class="vote-button" arrow_icon="gray-up"></Button>
+    </div>
+    <div v-if="!locked" class="voting-components"  @click="vote(song_uri,'up')">
       <Button class="vote-button" arrow_icon="up"></Button>
     </div>
       <div  class="vote_count"><p>{{ vote_count }}</p></div>
-      <div class="voting-components" @click="vote(song_uri, 'down')">
+    <div v-if="!locked" class="voting-components" @click="vote(song_uri, 'down')">
       <Button class="vote-button" arrow_icon="down"></Button>
     </div>
+    <div v-if="locked" class="voting-components" >
+      <Button class="vote-button" arrow_icon="gray-down"></Button>
+    </div>
     <SongItem
-      class="voting-results"
+      :class="{'voting-results': !locked, 'locked-results': (locked===true) }"
       :key="song_id"
       v-bind:song_name="song_name"
       v-bind:artist_name="artist_name"
@@ -35,6 +40,11 @@ export default {
     song_uri: String,
     vote_count: Number,
     locked: Boolean
+  },
+  data(){
+    return{
+      active: true,
+    }
   },
   // vote_direction and song_uri, as JSON (endoint = /vote)
   // fIXME: Bring song_uri to button level!
@@ -63,10 +73,18 @@ export default {
 </script>
 
 <style scoped>
+
 .voting-results {
   display: inline-block;
   background-color: rgba(0,0,0,0.05);
   color: black;
+  border-radius: 20px;
+}
+
+.locked-results {
+  display: inline-block;
+  background-color: black;
+  color: white;
   border-radius: 20px;
 }
 .vote-button {
