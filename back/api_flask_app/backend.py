@@ -272,9 +272,9 @@ def create_app():
 
     @app.route("/polling_and_pruning", methods=["POST"])
     def polling_and_pruning():
-        start_playing()
-        polling_function()
-        return 'Hello Im polling_and_pruning'
+        # start_playing()
+        # polling_function()
+        return json.dumps({'message':'Hello Im polling_and_pruning'})
 
     # vote endpoint expects a json object with 2 attributes `vote_direction` and `song_uri`
     @app.route("/vote", methods=["POST"])

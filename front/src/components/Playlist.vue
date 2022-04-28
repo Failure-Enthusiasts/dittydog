@@ -10,7 +10,6 @@
       v-bind:vote_count="search_result.vote_count"
       v-bind:locked="search_result.locked"
       v-on:playlist_updated_child="playlist_update"
-      v-bind:locked="search_result.locked"
       
     >
     </SongItemWithButtons>
