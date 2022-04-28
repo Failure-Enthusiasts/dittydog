@@ -14,6 +14,7 @@
       v-bind:song_name="song_name"
       v-bind:artist_name="artist_name"
       v-bind:album_url="album_url"
+      v-bind:locked="locked"
     >
     </SongItem>
   </div>
@@ -32,7 +33,8 @@ export default {
     album_name: String,
     album_url: String,
     song_uri: String,
-    vote_count: Number
+    vote_count: Number,
+    locked: Boolean
   },
   // vote_direction and song_uri, as JSON (endoint = /vote)
   // fIXME: Bring song_uri to button level!

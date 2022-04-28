@@ -7,6 +7,9 @@ import spotipy
 from flask_cors import CORS
 import uuid
 
+internal_playlist = []
+playlist_is_running = False
+
 caches_folder = './.spotify_caches/'
 if not os.path.exists(caches_folder):
     os.makedirs(caches_folder)
@@ -40,7 +43,8 @@ def playlist_parsing(results):
             "artist_name": x["track"]["artists"][0]["name"],
             "duration": x["track"]["duration_ms"],
             "img_link": x["track"]["album"]["images"][0]["url"],
-            "vote_count": 0
+            "vote_count": 0,
+            "locked": False
         },
         results,
     )
@@ -66,7 +70,116 @@ def build_internal_playlist():
     print(f'Playlist URL: https://open.spotify.com/playlist/{playlist_id_only}', file=sys.stderr)
     global internal_playlist
     internal_playlist = playlist_parsing(results["items"])
+    print('\nINTERNAL PLAYLIST\n\n:' + str(results), file=sys.stderr)
     return playlist_id_only
+
+
+
+def playing_song_status():
+    spotify = get_spotify_api_client()
+    current_song = spotify.currently_playing(market=None, additional_types=None)
+    # print("CURRENTLY PLAYING:\n" + str(current_song), file=sys.stderr)
+
+    if not current_song:
+        return
+    playing_song = {}
+    # current_song
+    playing_song['song_uri'] = current_song['item']['uri']
+
+    # current playing?
+    playing_song['is_playing'] = current_song['is_playing']
+
+    # time remaining?
+    playing_song['time_remaining'] = current_song['item']['duration_ms'] - current_song['progress_ms']
+    playing_song['half_played'] = 0.5 < (current_song['progress_ms'] / current_song['item']['duration_ms'])
+    
+    return playing_song
+    # import pdb
+    # pdb.set_trace()
+    # pass
+
+def freeze_upcoming_song():
+    global internal_playlist
+    # internal_playlist[0]['locked'] = True
+    internal_playlist[1]['locked'] = True
+    # internal_playlist[2]['locked'] = True
+    return internal_playlist[1]['song_uri']
+
+# any song containing the `locked` attribute that isn't currently playing or upcoming_song is removed from internal_playlist (assuming that these have already been played)
+def prune(enqueued_songs):
+    print(str(enqueued_songs), file=sys.stderr)
+    spotify = get_spotify_api_client()
+    prune_these = []
+    global internal_playlist
+    for song in internal_playlist:
+        if song['locked'] and song['song_uri'] not in enqueued_songs:
+            prune_these.append(song['song_uri'])
+            internal_playlist.remove(song)
+    if len(prune_these) != 0:
+        print('PRUNING', file=sys.stderr)
+        spotify = get_spotify_api_client()
+        spotify.playlist_remove_all_occurrences_of_items("6bMWOcbmA9X1sl30boENAD", prune_these)
+
+
+def polling_function():
+    playing_song = playing_song_status()
+    ## if none return
+    print(playing_song, file=sys.stderr)
+
+    if playing_song:
+        # freeze upcoming song
+            # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
+        if playing_song['half_played'] or playing_song['time_remaining'] < 30000:
+            upcoming_song_id = freeze_upcoming_song()
+            
+            # needs to be tested
+            enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
+            
+            # trigger the "delete played songs" action
+            prune(enqueued_songs)
+
+    
+    # assumptions we're making:
+    # - [x] top song is frozen in place at some trigger
+        # Timer'd start? How to do
+        # Default vote and song count?
+    # - [x - test though!] want to delete songs that have already been played. Either at voting time, or at some polling interval (requires polling what song status is)
+    # - !!! Implement timer: polling interval needs to be as frequent as "freeze next song" interval to avoid votes on pruned songs
+    
+    # TO DO: make SORT function avoid touching "locked" songs
+
+def start_playing():
+
+    # once 5 votes are on one song, and there are 5 songs in the list, start
+    # will be called in VOTE and CONFIRM endpoints
+    global internal_playlist
+    global playlist_is_running
+
+    if playlist_is_running == False:
+        vote_max = 0
+        for song in internal_playlist:
+            vote_max = max(song['vote_count'], vote_max)
+
+
+        if len(internal_playlist) > 4 and vote_max > 4:
+            playlist_is_running = True
+            # Spotify API call to start playlist running
+            spotify = get_spotify_api_client()
+            try:
+                spotify.start_playback(context_uri="6bMWOcbmA9X1sl30boENAD")
+            except:
+                print("Need premium", file=sys.stderr)
+            # lock the first song
+            if internal_playlist is not None:
+                internal_playlist[0]['locked'] = True
+
+def playlist_cleanup(self):
+
+    pass
+    # make the api call to see what's playing
+    # grab the internal playlist, see where that song falls in the list
+    # pop any songs that have played already
+    # update the Spotify playlist to reflect that
 
 def sort_playlist(spotify):
     global internal_playlist
@@ -155,6 +268,7 @@ def create_app():
             spotify.playlist_add_items(playlist_id, [request.json["song_uri"]])
         
         sort_playlist(spotify)
+        start_playing()
         return json.dumps(internal_playlist)
 
 
@@ -162,6 +276,11 @@ def create_app():
     def get_playlist():
         return json.dumps(internal_playlist)
 
+    @app.route("/polling_and_pruning", methods=["POST"])
+    def polling_and_pruning():
+        start_playing()
+        polling_function()
+        return 'Hello Im polling_and_pruning'
 
     # vote endpoint expects a json object with 2 attributes `vote_direction` and `song_uri`
     @app.route("/vote", methods=["POST"])
@@ -172,5 +291,14 @@ def create_app():
         spotify = get_spotify_api_client()
         sort_playlist(spotify)        
 
+        
+        
+        
         return json.dumps(internal_playlist)
+        
+
     return app
+
+    
+
+
