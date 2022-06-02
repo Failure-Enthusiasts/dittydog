@@ -6,6 +6,7 @@
     </div>
     <div id="search-wrapper">
       <input v-model="spotify_body" @keyup="song_search" placeholder="enter song name" id="search-bar"/>
+      <button @click="start_polling">Start Polling</button>
     </div>
     <div id="wrapper-wrapper">
       <div id="result-wrapper">
@@ -120,8 +121,27 @@ export default {
         } catch (error) {
           console.log(error);
         }
+    },
+    start_polling: async function(){
+      console.log("hit play")
+      try {
+          const response = await axios
+            .post(
+              "http://localhost/polling_and_pruning",
+              { withCredentials: true }
+            )
+            .catch(function(error) {
+              console.log(error);
+            });
+          console.log("RESPONSE");
+          console.log(response)
+          return
+        } catch (error) {
+          console.log(error);
+        }
     }
   },
+  
   
 };
 </script>
