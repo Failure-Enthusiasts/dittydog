@@ -6,6 +6,9 @@ from flask_session import Session
 import spotipy
 from flask_cors import CORS
 import uuid
+from time import sleep
+from threading import Thread
+from datetime import datetime
 
 internal_playlist = []
 playlist_is_running = False
@@ -201,6 +204,15 @@ def get_spotify_api_client():
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     return spotify
 
+def background_task():
+    while True:
+        print(datetime.now(), file=sys.stderr)
+        # print(datetime.now(), file=sys.stdout)
+        sys.stderr.flush()
+        start_playing()
+        # polling_function()
+        sleep(10)
+
 def create_app():
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -208,6 +220,10 @@ def create_app():
     app.config['SECRET_KEY'] = os.urandom(64)
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['SESSION_FILE_DIR'] = './.flask_session/'
+    # thread = Thread(target=background_task)
+    # thread.daemon = True
+    # thread.start()
+    
     Session(app)
 
     @app.route('/')
@@ -278,8 +294,15 @@ def create_app():
 
     @app.route("/polling_and_pruning", methods=["POST"])
     def polling_and_pruning():
-        start_playing()
-        polling_function()
+        # start_playing()
+        # polling_function()
+        # spotify = get_spotify_api_client()
+        # sort_playlist(spotify)
+
+        # thread = Thread(target=background_task, args=(spotify))
+        thread = Thread(target=background_task)
+        thread.daemon = True
+        thread.start()
         return 'Hello Im polling_and_pruning'
 
     # vote endpoint expects a json object with 2 attributes `vote_direction` and `song_uri`
@@ -291,9 +314,6 @@ def create_app():
         spotify = get_spotify_api_client()
         sort_playlist(spotify)        
 
-        
-        
-        
         return json.dumps(internal_playlist)
         
 
