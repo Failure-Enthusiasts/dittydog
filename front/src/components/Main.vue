@@ -128,6 +128,10 @@ export default {
           const response = await axios
             .post(
               "http://localhost/polling_and_pruning",
+              {
+                song_uri: 'yes', // (some way to grab the clicked-on song name goes here
+                vote_direction: 'sure'
+              },
               { withCredentials: true }
             )
             .catch(function(error) {
