@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from flask import Flask, session, request, redirect
+from flask import Flask, session, request, redirect, copy_current_request_context
 from flask_session import Session
 import spotipy
 from flask_cors import CORS
@@ -113,6 +113,8 @@ def prune(enqueued_songs):
     print(str(enqueued_songs), file=sys.stderr)
     spotify = get_spotify_api_client()
     prune_these = []
+    # probably need to update the format of prune_these to correspond to items: https://spotipy.readthedocs.io/en/2.19.0/#spotipy.client.Spotify.playlist_remove_all_occurrences_of_items
+    # https://a.cl.ly/DOud82GK
     global internal_playlist
     for song in internal_playlist:
         if song['locked'] and song['song_uri'] not in enqueued_songs:
@@ -121,7 +123,7 @@ def prune(enqueued_songs):
     if len(prune_these) != 0:
         print('PRUNING', file=sys.stderr)
         spotify = get_spotify_api_client()
-        spotify.playlist_remove_all_occurrences_of_items("6bMWOcbmA9X1sl30boENAD", prune_these)
+        spotify.playlist_remove_all_occurrences_of_items(playlist_id, prune_these)
 
 
 def polling_function():
@@ -169,7 +171,7 @@ def start_playing():
             # Spotify API call to start playlist running
             spotify = get_spotify_api_client()
             try:
-                spotify.start_playback(context_uri="6bMWOcbmA9X1sl30boENAD")
+                spotify.start_playback(context_uri=playlist_id)
             except:
                 print("Need premium", file=sys.stderr)
             # lock the first song
@@ -204,14 +206,14 @@ def get_spotify_api_client():
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     return spotify
 
-def background_task():
-    while True:
-        print(datetime.now(), file=sys.stderr)
-        # print(datetime.now(), file=sys.stdout)
-        sys.stderr.flush()
-        start_playing()
-        # polling_function()
-        sleep(10)
+# def background_task():
+#     while True:
+#         print(datetime.now(), file=sys.stderr)
+#         # print(datetime.now(), file=sys.stdout)
+#         sys.stderr.flush()
+#         start_playing()
+#         polling_function()
+#         sleep(10)
 
 def create_app():
     # create and configure the app
@@ -272,7 +274,6 @@ def create_app():
 
         # takes the selected song from the frontend response and adds it to our internal playlist with 1 vote
         new_song = request.json
-
         index = find_index(new_song["song_uri"])
         if (index is not None):
             # increment vote count if song is already in playlist
@@ -280,6 +281,7 @@ def create_app():
         else:
             # takes the selected song from the frontend response and adds it to spotify playlist
             new_song['vote_count'] = 1
+            new_song['locked'] = False
             internal_playlist.append(new_song)
             spotify.playlist_add_items(playlist_id, [request.json["song_uri"]])
         
@@ -294,16 +296,25 @@ def create_app():
 
     @app.route("/polling_and_pruning", methods=["POST"])
     def polling_and_pruning():
-        # start_playing()
-        # polling_function()
-        # spotify = get_spotify_api_client()
-        # sort_playlist(spotify)
-
-        # thread = Thread(target=background_task, args=(spotify))
+        @copy_current_request_context
+        def background_task():
+            while True:
+                print(datetime.now(), file=sys.stderr)
+                sys.stderr.flush()
+                start_playing()
+                polling_function()
+                sleep(10)
         thread = Thread(target=background_task)
         thread.daemon = True
         thread.start()
-        return 'Hello Im polling_and_pruning'
+        
+        return json.dumps(internal_playlist)
+
+    @app.route("/another_endpoint", methods=["POST"])
+    def another_endpoint():
+        session_str = session_cache_path()
+        print(session_str, file=sys.stderr)
+        return session_str
 
     # vote endpoint expects a json object with 2 attributes `vote_direction` and `song_uri`
     @app.route("/vote", methods=["POST"])
@@ -318,7 +329,3 @@ def create_app():
         
 
     return app
-
-    
-
-
