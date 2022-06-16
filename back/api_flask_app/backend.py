@@ -9,6 +9,24 @@ import uuid
 from time import sleep
 from threading import Thread
 from datetime import datetime
+import socketio
+
+# sio = socketio.Client()
+
+# @sio.event
+# def connect():
+#     print("connection established", flush=True)
+
+
+# @sio.event
+# def my_message(data):
+#     print("message received with ", data, flush=True)
+#     sio.emit("incoming data", data)
+
+
+# @sio.event
+# def disconnect():
+#     print("disconnected from server", flush=True)
 
 internal_playlist = []
 playlist_is_running = False

@@ -7,6 +7,11 @@
     <div id="search-wrapper">
       <input v-model="spotify_body" @keyup="song_search" placeholder="enter song name" id="search-bar"/>
       <button @click="start_polling">Start Polling</button>
+      <div>
+        <p v-if="isConnected">We're connected to the server!</p>
+        <p>Message from server: "{{socketMessage}}"</p>
+        <button @click="pingServer()">Ping Server</button>
+      </div>
     </div>
     <div id="wrapper-wrapper">
       <div id="result-wrapper">
@@ -34,6 +39,8 @@ export default {
     var urlParams = new URLSearchParams(window.location.search);
     var playlist_id = urlParams.get('playlist_id');
     return {
+      isConnected: false,
+      socketMessage: '',
       msg2: "DittyDog",
       play_button_hidden: true,
       spotify_body: "",
@@ -44,6 +51,23 @@ export default {
       playlist_link: `https://open.spotify.com/playlist/${urlParams.get('playlist_id')}`
     };
   },
+
+  sockets: {
+    connect() {
+      // Fired when the socket connects.
+      this.isConnected = true;
+    },
+
+    disconnect() {
+      this.isConnected = false;
+    },
+
+    // Fired when the server sends something on the "messageChannel" channel.
+    messageChannel(data) {
+      this.socketMessage = data
+    }
+  },
+
   async mounted() {
      try {
       const response = await axios
@@ -65,6 +89,12 @@ export default {
     
   },
   methods: {
+    pingServer: function () {
+      console.log("HI ping server");
+      // Send the "pingServer" event to the server.
+      console.log(this.$socket)
+      this.$socket.emit('pingServer', 'PING!')
+    },
     song_search: async function() {
       console.log("SEARCH TERM: " + this.$data.spotify_body);
       if (this.$data.spotify_body != ""){
