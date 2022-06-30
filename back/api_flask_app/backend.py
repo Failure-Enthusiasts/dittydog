@@ -11,22 +11,25 @@ from threading import Thread
 from datetime import datetime
 import socketio
 
-# sio = socketio.Client()
+sio = socketio.Client(logger=True, engineio_logger=True)
 
-# @sio.event
-# def connect():
-#     print("connection established", flush=True)
-
-
-# @sio.event
-# def my_message(data):
-#     print("message received with ", data, flush=True)
-#     sio.emit("incoming data", data)
+@sio.event
+def connect():
+    print("connection established", flush=True)
 
 
-# @sio.event
-# def disconnect():
-#     print("disconnected from server", flush=True)
+@sio.event
+def my_message(data):
+    print("message received with ", data, flush=True)
+    sio.emit("incomingData", data)
+
+
+@sio.event
+def disconnect():
+    print("disconnected from server", flush=True)
+
+print("before sio.connect", file=sys.stderr)
+sio.connect("http://host.docker.internal:4001")
 
 internal_playlist = []
 playlist_is_running = False
@@ -288,6 +291,7 @@ def create_app():
 
     @app.route("/confirm", methods=["POST"])
     def confirm():
+        my_message("hey there")
         spotify = get_spotify_api_client()
 
         # takes the selected song from the frontend response and adds it to our internal playlist with 1 vote
