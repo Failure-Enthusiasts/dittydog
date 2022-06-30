@@ -20,7 +20,9 @@ const io = socketIo(server, {
   allowEIO3: true,
   cors: {
     credentials: true,
-    origin: "http://localhost:8080",
+    // origin: "http://localhost:8080",
+    origin: ['http://localhost:8080', 'http://0.0.0.0:80', 'http://localhost:80', 'http://127.0.0.1:80'],
+    methods: ["GET", "POST"]
   }
 });
 //Setting up a socket with the namespace "connection" for new sockets
@@ -31,11 +33,11 @@ io.on("connection", socket => {
     console.log("This is the middleware's data:")
 
     //Here we listen on a new namespace called "incoming data"
-    socket.on("incoming data", (data) => {
+    socket.on("incomingData", (data) => {
         //Here we broadcast it out to all other sockets EXCLUDING the socket which sent us the data
         // socket.broadcast.emit("incoming data", { num: data });
         console.log(data)
-        socket.broadcast.emit("incoming data", data);
+        socket.broadcast.emit("incomingData", data);
     });
 
     //A special namespace "disconnect" for when a client disconnects
