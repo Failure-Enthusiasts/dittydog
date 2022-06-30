@@ -11,3 +11,10 @@ Spin up backend: `docker-compose up --build`
 Spin up frontend:
 `npm install`
 `npm run serve`
+
+Spin up websocket: from `server` dir
+`node server.js`
+
+
+Socket ref: https://www.digitalocean.com/community/tutorials/vuejs-vue-socketio
+
