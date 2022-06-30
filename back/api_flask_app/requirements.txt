@@ -3,4 +3,4 @@ spotipy==2.19.0
 flask-cors
 flask-session
 uuid
-python-socketio==4.6.0
+python-socketio==4.6.1
