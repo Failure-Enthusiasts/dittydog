@@ -62,30 +62,44 @@ export default {
       this.isConnected = false;
     },
 
+    message(data) {
+      console.log('this method was fired by the socket server. eg: io.emit("customEmit", data)');
+      console.log(data);
+    },
+
+    incomingData(data) {
+      console.log('this method was fired by the socket server. eg: io.emit("customEmit", data)');
+      console.log(data);
+    },
+
     // Fired when the server sends something on the "messageChannel" channel.
     messageChannel(data) {
       this.socketMessage = data
+      console.log(data)
     }
   },
 
   async mounted() {
-     try {
-      const response = await axios
-          .get(
-              "http://localhost/get_playlist",
-              { withCredentials: true }
-          )
-          .catch(function(error) {
-            console.log(error);
-          });
-      console.log("PLAYLIST RESPONSE");
-      console.log(response.data);
-      this.playlist = response.data;
-      this.play_button_hidden = this.playlist.length < 5;
-      return response.data;
-    } catch (error) {
-      console.log(error);
-    }
+    this.$socket.on('incomingData', (data) => {
+      console.log(data);
+    });
+    try {
+    const response = await axios
+        .get(
+            "http://localhost/get_playlist",
+            { withCredentials: true }
+        )
+        .catch(function(error) {
+          console.log(error);
+        });
+    console.log("PLAYLIST RESPONSE");
+    console.log(response.data);
+    this.playlist = response.data;
+    this.play_button_hidden = this.playlist.length < 5;
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
     
   },
   methods: {
@@ -93,7 +107,7 @@ export default {
       console.log("HI ping server");
       // Send the "pingServer" event to the server.
       console.log(this.$socket)
-      this.$socket.emit('pingServer', 'PING!')
+      this.$socket.emit('incoming data', 'PING front here!')
     },
     song_search: async function() {
       console.log("SEARCH TERM: " + this.$data.spotify_body);
