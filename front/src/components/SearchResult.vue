@@ -24,7 +24,7 @@ export default {
   },
   methods: {
     song_confirm: async function (search_res) {
-      this.$emit("addsong");
+      this.$emit("addsong", 'someDataToEmit');
       const response = await axios
         .post(
           "http://localhost/confirm", search_res,

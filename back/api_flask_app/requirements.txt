@@ -4,3 +4,4 @@ flask-cors
 flask-session
 uuid
 python-socketio==4.6.1
+websocket-client

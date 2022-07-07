@@ -68,8 +68,13 @@ export default {
     },
 
     incomingData(data) {
-      console.log('this method was fired by the socket server. eg: io.emit("customEmit", data)');
+      console.log('this method was fired by the socket server, incomingData. eg: io.emit("customEmit", data)');
       console.log(data);
+
+      console.log('Grabbing playlist manually!');
+      const response = this.manual_playlist_request();
+      console.log(response);
+
     },
 
     // Fired when the server sends something on the "messageChannel" channel.
@@ -83,23 +88,24 @@ export default {
     this.$socket.on('incomingData', (data) => {
       console.log(data);
     });
-    try {
-    const response = await axios
-        .get(
-            "http://localhost/get_playlist",
-            { withCredentials: true }
-        )
-        .catch(function(error) {
-          console.log(error);
-        });
-    console.log("PLAYLIST RESPONSE");
-    console.log(response.data);
-    this.playlist = response.data;
-    this.play_button_hidden = this.playlist.length < 5;
-    return response.data;
-  } catch (error) {
-    console.log(error);
-  }
+    this.manual_playlist_request();
+  //   try {
+  //   const response = await axios
+  //       .get(
+  //           "http://localhost/get_playlist",
+  //           { withCredentials: true }
+  //       )
+  //       .catch(function(error) {
+  //         console.log(error);
+  //       });
+  //   console.log("PLAYLIST RESPONSE");
+  //   console.log(response.data);
+  //   this.playlist = response.data;
+  //   this.play_button_hidden = this.playlist.length < 5;
+  //   return response.data;
+  // } catch (error) {
+  //   console.log(error);
+  // }
     
   },
   methods: {
@@ -184,6 +190,25 @@ export default {
           console.log("RESPONSE");
           console.log(response)
           return
+        } catch (error) {
+          console.log(error);
+        }
+    },
+    manual_playlist_request: async function(){
+      try {
+          const response = await axios
+              .get(
+                  "http://localhost/get_playlist",
+                  { withCredentials: true }
+              )
+              .catch(function(error) {
+                console.log(error);
+              });
+          console.log("PLAYLIST RESPONSE");
+          console.log(response.data);
+          this.playlist = response.data;
+          // this.play_button_hidden = this.playlist.length < 5;
+          return response.data;
         } catch (error) {
           console.log(error);
         }

@@ -140,9 +140,12 @@ def prune(enqueued_songs):
     for song in internal_playlist:
         if song['locked'] and song['song_uri'] not in enqueued_songs:
             prune_these.append(song['song_uri'])
+            print(f'ABOUT TO PRUNE: {song["song_uri"]}', file=sys.stderr)
+            print(f'ABOUT TO PRUNE, and playlist is: {internal_playlist}', file=sys.stderr)
+
             internal_playlist.remove(song)
     if len(prune_these) != 0:
-        print('PRUNING', file=sys.stderr)
+        print(f'PRUNING: {prune_these}', file=sys.stderr)
         spotify = get_spotify_api_client()
         spotify.playlist_remove_all_occurrences_of_items(playlist_id, prune_these)
 
@@ -163,6 +166,9 @@ def polling_function():
             
             # trigger the "delete played songs" action
             prune(enqueued_songs)
+
+            # Tell the frontend to manually pull the new playlist
+            my_message("Hey FrontEnd, manually pull the new playlist!") # this successfully emits on both sockets - front and backend
 
     
     # assumptions we're making:
@@ -291,7 +297,6 @@ def create_app():
 
     @app.route("/confirm", methods=["POST"])
     def confirm():
-        my_message("hey there")
         spotify = get_spotify_api_client()
 
         # takes the selected song from the frontend response and adds it to our internal playlist with 1 vote
@@ -308,7 +313,7 @@ def create_app():
             spotify.playlist_add_items(playlist_id, [request.json["song_uri"]])
         
         sort_playlist(spotify)
-        start_playing()
+        # start_playing() 
         return json.dumps(internal_playlist)
 
 
