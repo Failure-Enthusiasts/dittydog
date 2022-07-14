@@ -1,5 +1,6 @@
 <template>
   <div id="playlist-results">
+    <TransitionGroup name="list">
     <SongItemWithButtons
       v-for="search_result in results_arr"
       :key="search_result.song_id"
@@ -10,9 +11,9 @@
       v-bind:vote_count="search_result.vote_count"
       v-bind:locked="search_result.locked"
       v-on:playlist_updated_child="playlist_update"
-      
     >
     </SongItemWithButtons>
+    </TransitionGroup>
   </div>
 </template>
 
@@ -34,5 +35,23 @@ export default {
 <style scoped>
 #playlist-results{
   text-align: left
-} 
+}
+
+.list-move, /* apply transition to moving elements */
+.list-enter-active,
+.list-leave-active {
+  transition: all 2s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.list-leave-active {
+  position: absolute;
+}
 </style>
