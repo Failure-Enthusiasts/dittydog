@@ -10,8 +10,26 @@ from time import sleep
 from threading import Thread
 from datetime import datetime
 import socketio
+import logging
 
-sio = socketio.Client(logger=True, engineio_logger=True)
+
+logging.getLogger('socketio').setLevel(logging.ERROR)
+# logging.getLogger('engineio.server').setLevel(logging.ERROR)
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
+
+# import logging
+
+class NoPingPongFilter(logging.Filter):
+
+  def filter(self, record):
+    return not ('Received packet PONG' in record.getMessage() or
+                'Sending packet PING' in record.getMessage())
+
+
+logging.getLogger('engineio.server').addFilter(NoPingPongFilter())
+sio = socketio.Client(logger=False, engineio_logger=True)
+# socketio = SocketIO(logger=False, engineio_logger=True)
 
 @sio.event
 def connect():
@@ -188,31 +206,20 @@ def start_playing():
     global playlist_is_running
 
     if playlist_is_running == False:
-        vote_max = 0
-        for song in internal_playlist:
-            vote_max = max(song['vote_count'], vote_max)
+        playlist_is_running = True
+        internal_playlist[0]['locked'] = True
+        my_message("Hey FrontEnd, manually pull the new playlist!")
 
-
-        if len(internal_playlist) > 4 and vote_max > 4:
-            playlist_is_running = True
-            # Spotify API call to start playlist running
-            spotify = get_spotify_api_client()
-            try:
-                spotify.start_playback(context_uri=playlist_id)
-            except:
-                print("Need premium", file=sys.stderr)
-            # lock the first song
-            if internal_playlist is not None:
-                internal_playlist[0]['locked'] = True
-
-def playlist_cleanup(self):
-
-    pass
-    # make the api call to see what's playing
-    # grab the internal playlist, see where that song falls in the list
-    # pop any songs that have played already
-    # update the Spotify playlist to reflect that
-
+        # removing auto-play for now, doesn't work ##
+        # spotify = get_spotify_api_client()
+        # try:
+        #     spotify.start_playback(context_uri=playlist_id)
+        # except:
+        #     print("Need premium", file=sys.stderr)
+        # lock the first song
+        # if internal_playlist is not None:
+        #     internal_playlist[0]['locked'] = True
+        
 def sort_playlist(spotify):
     global internal_playlist
     playlist_before_sort = internal_playlist.copy()
@@ -313,7 +320,6 @@ def create_app():
             spotify.playlist_add_items(playlist_id, [request.json["song_uri"]])
         
         sort_playlist(spotify)
-        # start_playing() 
         return json.dumps(internal_playlist)
 
 

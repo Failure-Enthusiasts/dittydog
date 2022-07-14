@@ -1,17 +1,9 @@
 <template >
-  <div @blur="play_song()" tabindex="0" class="main-grid" v-on:click="event => exit_search(event)">
+  <div class="main-grid">
     <h1 id="title">{{ msg2 }}</h1>
-    <div id="spotify-playlist-button" :class="{ playButtonHidden: play_button_hidden }">
-      <iframe tabindex="1" style="border-radius:12px" :src="'https://open.spotify.com/embed/playlist/' + playlist_id + '?utm_source=generator'" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-    </div>
     <div id="search-wrapper">
       <input v-model="spotify_body" @keyup="song_search" placeholder="enter song name" id="search-bar"/>
-      <button @click="start_polling">Start Polling</button>
-      <div>
-        <p v-if="isConnected">We're connected to the server!</p>
-        <p>Message from server: "{{socketMessage}}"</p>
-        <button @click="pingServer()">Ping Server</button>
-      </div>
+      <a :href = playlist_link target = "_blank"> <button :class="{ playButtonHidden: play_button_hidden }" @click="start_polling">Start Playlist</button></a>
     </div>
     <div id="wrapper-wrapper">
       <div id="result-wrapper">
@@ -80,7 +72,7 @@ export default {
     // Fired when the server sends something on the "messageChannel" channel.
     messageChannel(data) {
       this.socketMessage = data
-      console.log(data)
+
     }
   },
 
@@ -98,25 +90,19 @@ export default {
   //       .catch(function(error) {
   //         console.log(error);
   //       });
-  //   console.log("PLAYLIST RESPONSE");
-  //   console.log(response.data);
+
+
   //   this.playlist = response.data;
   //   this.play_button_hidden = this.playlist.length < 5;
   //   return response.data;
   // } catch (error) {
-  //   console.log(error);
+
   // }
     
   },
   methods: {
-    pingServer: function () {
-      console.log("HI ping server");
-      // Send the "pingServer" event to the server.
-      console.log(this.$socket)
-      this.$socket.emit('incoming data', 'PING front here!')
-    },
     song_search: async function() {
-      console.log("SEARCH TERM: " + this.$data.spotify_body);
+
       if (this.$data.spotify_body != ""){
         try {
           const response = await axios
@@ -131,8 +117,8 @@ export default {
             .catch(function(error) {
               console.log(error);
             });
-          console.log("RESPONSE");
-          console.log(response.data);
+
+
           this.search_results = response.data;
           this.search_mode_on = true;
           return response.data;
@@ -145,37 +131,18 @@ export default {
     },
     update_playlist_pls: function(value){
       console.log("received updated playlist in main")
-      console.log(value);
+
       this.playlist = value;
-      this.play_button_hidden = value.length < 5;
+      this.play_button_hidden = value.length < 2;
     },
     exit_search: function(e){
       if(e.target.id != 'search-bar') {
         this.search_mode_on = false;
       }
     },
-    play_song: async function(){
-      console.log("hit play")
-      try {
-          const response = await axios
-            .post(
-              "http://localhost/user_started_play",
-              { withCredentials: true }
-            )
-            .catch(function(error) {
-              console.log(error);
-            });
-          console.log("RESPONSE");
-          console.log(response)
-          return
-        } catch (error) {
-          console.log(error);
-        }
-    },
     start_polling: async function(){
-      console.log("hit play")
       try {
-          const response = await axios
+          await axios
             .post(
               "http://localhost/polling_and_pruning",
               {
@@ -187,8 +154,7 @@ export default {
             .catch(function(error) {
               console.log(error);
             });
-          console.log("RESPONSE");
-          console.log(response)
+          
           return
         } catch (error) {
           console.log(error);
@@ -204,8 +170,8 @@ export default {
               .catch(function(error) {
                 console.log(error);
               });
-          console.log("PLAYLIST RESPONSE");
-          console.log(response.data);
+
+
           this.playlist = response.data;
           // this.play_button_hidden = this.playlist.length < 5;
           return response.data;
