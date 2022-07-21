@@ -10,26 +10,8 @@ from time import sleep
 from threading import Thread
 from datetime import datetime
 import socketio
-import logging
 
-
-logging.getLogger('socketio').setLevel(logging.ERROR)
-# logging.getLogger('engineio.server').setLevel(logging.ERROR)
-logging.getLogger('werkzeug').setLevel(logging.ERROR)
-
-
-# import logging
-
-class NoPingPongFilter(logging.Filter):
-
-  def filter(self, record):
-    return not ('Received packet PONG' in record.getMessage() or
-                'Sending packet PING' in record.getMessage())
-
-
-logging.getLogger('engineio.server').addFilter(NoPingPongFilter())
 sio = socketio.Client(logger=False, engineio_logger=True)
-# socketio = SocketIO(logger=False, engineio_logger=True)
 
 @sio.event
 def connect():
@@ -120,8 +102,6 @@ def build_internal_playlist():
 def playing_song_status():
     spotify = get_spotify_api_client()
     current_song = spotify.currently_playing(market=None, additional_types=None)
-    # print("CURRENTLY PLAYING:\n" + str(current_song), file=sys.stderr)
-
     if not current_song:
         return
     playing_song = {}
@@ -134,11 +114,8 @@ def playing_song_status():
     # time remaining?
     playing_song['time_remaining'] = current_song['item']['duration_ms'] - current_song['progress_ms']
     playing_song['half_played'] = 0.5 < (current_song['progress_ms'] / current_song['item']['duration_ms'])
-    
     return playing_song
-    # import pdb
-    # pdb.set_trace()
-    # pass
+
 
 def freeze_upcoming_song():
     global internal_playlist
@@ -176,15 +153,11 @@ def polling_function():
     if playing_song:
         # freeze upcoming song
             # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
-        if playing_song['half_played'] or playing_song['time_remaining'] < 30000:
+        if (playing_song['half_played'] or playing_song['time_remaining'] < 30000) and len(internal_playlist) > 1:
             upcoming_song_id = freeze_upcoming_song()
-            
-            # needs to be tested
             enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
-            
             # trigger the "delete played songs" action
             prune(enqueued_songs)
-
             # Tell the frontend to manually pull the new playlist
             my_message("Hey FrontEnd, manually pull the new playlist!") # this successfully emits on both sockets - front and backend
 
@@ -195,13 +168,8 @@ def polling_function():
         # Default vote and song count?
     # - [x - test though!] want to delete songs that have already been played. Either at voting time, or at some polling interval (requires polling what song status is)
     # - !!! Implement timer: polling interval needs to be as frequent as "freeze next song" interval to avoid votes on pruned songs
-    
-    # TO DO: make SORT function avoid touching "locked" songs
 
 def start_playing():
-
-    # once 5 votes are on one song, and there are 5 songs in the list, start
-    # will be called in VOTE and CONFIRM endpoints
     global internal_playlist
     global playlist_is_running
 
@@ -222,9 +190,9 @@ def start_playing():
         
 def sort_playlist(spotify):
     global internal_playlist
+    start = len([song for song in internal_playlist if song['locked']])
     playlist_before_sort = internal_playlist.copy()
-    internal_playlist = sorted(internal_playlist, key=lambda item: item["vote_count"], reverse = True)
-
+    internal_playlist[start:] = sorted(internal_playlist[start:], key=lambda item: item["vote_count"], reverse = True)
     # takes the selected song from the frontend response and adds it to spotify playlist if the sort order changed
     for i in range(len(internal_playlist)):
         if internal_playlist[i]["song_uri"] != playlist_before_sort[i]["song_uri"]:
@@ -240,15 +208,6 @@ def get_spotify_api_client():
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     return spotify
 
-# def background_task():
-#     while True:
-#         print(datetime.now(), file=sys.stderr)
-#         # print(datetime.now(), file=sys.stdout)
-#         sys.stderr.flush()
-#         start_playing()
-#         polling_function()
-#         sleep(10)
-
 def create_app():
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -256,10 +215,6 @@ def create_app():
     app.config['SECRET_KEY'] = os.urandom(64)
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['SESSION_FILE_DIR'] = './.flask_session/'
-    # thread = Thread(target=background_task)
-    # thread.daemon = True
-    # thread.start()
-    
     Session(app)
 
     @app.route('/')
