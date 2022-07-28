@@ -3,7 +3,25 @@ import sys
 import os
 from flask import session
 import spotipy
+import socketio
 
+sio = socketio.Client(logger=False, engineio_logger=True)
+
+@sio.event
+def connect():
+    print("connection established", flush=True)
+
+@sio.event
+def my_message(data):
+    print("message received with ", data, flush=True)
+    sio.emit("incomingData", data)
+
+@sio.event
+def disconnect():
+    print("disconnected from server", flush=True)
+
+print("before sio.connect", file=sys.stderr)
+sio.connect("http://host.docker.internal:4001")
 
 caches_folder = './.spotify_caches/'
 if not os.path.exists(caches_folder):
@@ -74,3 +92,96 @@ def build_internal_playlist(internal_playlist):
     internal_playlist = playlist_parsing(results["items"])
     print('\nINTERNAL PLAYLIST\n\n:' + str(results), file=sys.stderr)
     return internal_playlist, playlist_id_only
+
+def playing_song_status():
+    spotify = get_spotify_api_client()
+    current_song = spotify.currently_playing(market=None, additional_types=None)
+    if not current_song:
+     return
+    playing_song = {}
+    # current_song
+    playing_song['song_uri'] = current_song['item']['uri']
+
+    # current playing?
+    playing_song['is_playing'] = current_song['is_playing']
+
+    # time remaining?
+    playing_song['time_remaining'] = current_song['item']['duration_ms'] - current_song['progress_ms']
+    playing_song['half_played'] = 0.5 < (current_song['progress_ms'] / current_song['item']['duration_ms'])
+    return playing_song
+
+def freeze_upcoming_song(internal_playlist):
+    # internal_playlist[0]['locked'] = True
+    internal_playlist[1]['locked'] = True
+    # internal_playlist[2]['locked'] = True
+    return internal_playlist[1]['song_uri']
+
+# any song containing the `locked` attribute that isn't currently playing or upcoming_song is removed from internal_playlist (assuming that these have already been played)
+def prune(enqueued_songs, internal_playlist, playlist_id):
+    print(str(enqueued_songs), file=sys.stderr)
+    spotify = get_spotify_api_client()
+    prune_these = []
+    # probably need to update the format of prune_these to correspond to items: https://spotipy.readthedocs.io/en/2.19.0/#spotipy.client.Spotify.playlist_remove_all_occurrences_of_items
+    # https://a.cl.ly/DOud82GK
+    for song in internal_playlist:
+        if song['locked'] and song['song_uri'] not in enqueued_songs:
+            prune_these.append(song['song_uri'])
+            print(f'ABOUT TO PRUNE: {song["song_uri"]}', file=sys.stderr)
+            print(f'ABOUT TO PRUNE, and playlist is: {internal_playlist}', file=sys.stderr)
+
+            internal_playlist.remove(song)
+    if len(prune_these) != 0:
+        print(f'PRUNING: {prune_these}', file=sys.stderr)
+        spotify = get_spotify_api_client()
+        spotify.playlist_remove_all_occurrences_of_items(playlist_id, prune_these)
+
+def polling_function(internal_playlist, playlist_id):
+    playing_song = playing_song_status()
+    ## if none return
+    print(playing_song, file=sys.stderr)
+
+    if playing_song:
+        # freeze upcoming song
+            # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
+        if (playing_song['half_played'] or playing_song['time_remaining'] < 30000) and len(internal_playlist) > 1:
+            upcoming_song_id = freeze_upcoming_song(internal_playlist)
+            enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
+            # trigger the "delete played songs" action
+            prune(enqueued_songs, internal_playlist, playlist_id)
+            # Tell the frontend to manually pull the new playlist
+            my_message("Hey FrontEnd, manually pull the new playlist!") # this successfully emits on both sockets - front and backend
+
+
+    # assumptions we're making:
+    # - [x] top song is frozen in place at some trigger
+        # Timer'd start? How to do
+        # Default vote and song count?
+    # - [x - test though!] want to delete songs that have already been played. Either at voting time, or at some polling interval (requires polling what song status is)
+    # - !!! Implement timer: polling interval needs to be as frequent as "freeze next song" interval to avoid votes on pruned songs
+
+def start_playing(internal_playlist, playlist_is_running):
+    if playlist_is_running == False:
+        playlist_is_running = True
+        internal_playlist[0]['locked'] = True
+        my_message("Hey FrontEnd, manually pull the new playlist!")
+
+        # removing auto-play for now, doesn't work ##
+        # spotify = helper_functions.get_spotify_api_client()
+        # try:
+        #     spotify.start_playback(context_uri=playlist_id)
+        # except:
+        #     print("Need premium", file=sys.stderr)
+        # lock the first song
+        # if internal_playlist is not None:
+        #     internal_playlist[0]['locked'] = True
+
+def sort_playlist(spotify, internal_playlist, playlist_id):
+    start = len([song for song in internal_playlist if song['locked']])
+    playlist_before_sort = internal_playlist.copy()
+    internal_playlist[start:] = sorted(internal_playlist[start:], key=lambda item: item["vote_count"], reverse = True)
+    # takes the selected song from the frontend response and adds it to spotify playlist if the sort order changed
+    for i in range(len(internal_playlist)):
+        if internal_playlist[i]["song_uri"] != playlist_before_sort[i]["song_uri"]:
+            print("made request to Spotify API", file = sys.stderr )
+            spotify.playlist_replace_items(playlist_id, map(lambda song: song["song_uri"], internal_playlist))
+            break
