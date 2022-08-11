@@ -96,6 +96,8 @@ def build_internal_playlist(internal_playlist):
 def playing_song_status():
     spotify = get_spotify_api_client()
     current_song = spotify.currently_playing(market=None, additional_types=None)
+    print("current song",file=sys.stderr)
+    print(str(current_song),file=sys.stderr)
     if not current_song:
      return
     playing_song = {}
