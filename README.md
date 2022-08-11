@@ -13,7 +13,8 @@ Spin up frontend:
 `npm run serve`
 
 Spin up websocket: from `server` dir
-`node server.js`
+`npm install`
+`npm start`
 
 
 Socket ref: https://www.digitalocean.com/community/tutorials/vuejs-vue-socketio
