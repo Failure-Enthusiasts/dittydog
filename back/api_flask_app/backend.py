@@ -10,6 +10,11 @@ from time import sleep
 from threading import Thread
 from datetime import datetime
 import helper_functions
+import redis_client
+import asyncio
+import logging
+
+log = logging.getLogger(__name__)
 
 internal_playlist = []
 playlist_is_running = False
@@ -52,7 +57,7 @@ def create_app():
 
 
     @app.route("/search", methods=["POST"])
-    def search():
+    async def search():
         if "query_string" not in request.json or request.json["query_string"] == "":
             return "bad request!", 400
         else:
@@ -62,6 +67,13 @@ def create_app():
         limit = request.json["limit"] if "limit" in request.json else 5
 
         results = spotify.search(q=text, type="track", limit=limit)
+
+        mycache = redis_client.RedisClient()
+        await mycache.set("mykey", "myval")
+        mymsg = await mycache.get("mykey")
+        log.info(f'The message from REDIS IS: {mymsg}')
+        print(f'The message from REDIS IS: {mymsg}', file=sys.stderr)
+
         return helper_functions.search_result_parsing(results["tracks"]["items"])
 
 
