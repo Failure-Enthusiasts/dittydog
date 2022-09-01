@@ -28,13 +28,19 @@ def create_app():
     app.config['SESSION_FILE_DIR'] = './.flask_session/'
     Session(app)
 
+    ## this doesn't work -- how do we share the Redis client across routes?
+    #mycache = redis_client.RedisClient()
+
+
     @app.route('/')
     def index():
+    # async def index():
         if not session.get('uuid'):
             # Step 1. Visitor is unknown, give random ID
             session['uuid'] = str(uuid.uuid4())
-
+        # mycache = redis_client.RedisClient()
         cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=helper_functions.session_cache_path())
+        # cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key='token_info')
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
 
         if request.args.get("code"):
@@ -67,7 +73,7 @@ def create_app():
         limit = request.json["limit"] if "limit" in request.json else 5
 
         results = spotify.search(q=text, type="track", limit=limit)
-
+        
         mycache = redis_client.RedisClient()
         await mycache.set("mykey", "myval")
         mymsg = await mycache.get("mykey")
