@@ -4,6 +4,7 @@ import os
 from flask import session
 import spotipy
 import socketio
+import redis
 
 sio = socketio.Client(logger=False, engineio_logger=True)
 
@@ -47,7 +48,9 @@ def search_result_parsing(results):
         return test_names_arr
 
 def get_spotify_api_client():
-    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+    # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+    mycache = redis.Redis(host='redis', port=6379, db=0)
+    cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key='token_info')
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
         return redirect('/') # TODO: find a way to tell the front end that it needs to refresh the token. We don't think this works as is
