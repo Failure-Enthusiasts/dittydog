@@ -31,7 +31,6 @@ def create_app():
     ## this doesn't work -- how do we share the Redis client across routes?
     # mycache = redis_client.RedisClient()
 
-
     @app.route('/')
     # def index():
     async def index():
@@ -42,7 +41,7 @@ def create_app():
         mycache = redis.Redis(host='redis', port=6379, db=0)
         # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=helper_functions.session_cache_path())
         # await mycache.set("token_info", session['uuid'])
-        cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key='token_info')
+        cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
 
         if request.args.get("code"):
@@ -56,9 +55,16 @@ def create_app():
             return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
         # building internal playlist as part of the default auth flow
-        global internal_playlist
-        global playlist_id
-        internal_playlist, playlist_id = helper_functions.build_internal_playlist(internal_playlist)
+        # global internal_playlist
+        # global playlist_id
+        # internal_playlist, playlist_id = helper_functions.build_internal_playlist(internal_playlist=internal_playlist)
+
+        internal_playlist, playlist_id = helper_functions.build_internal_playlist()
+        playlist_obj = {
+            "playlist": internal_playlist, 
+            "playlist_id": playlist_id
+        }
+        mycache.set(helper_functions.session_db_path('playlist'), json.dumps(playlist_obj))
 
         # Step 4. Signed in, display data
         return redirect(f'http://localhost:8080/?playlist_id={playlist_id}')
@@ -88,8 +94,14 @@ def create_app():
     @app.route("/confirm", methods=["POST"])
     def confirm():
         spotify = helper_functions.get_spotify_api_client()
-        global internal_playlist
-        global playlist_id
+        # global internal_playlist
+        # global playlist_id
+        mycache = redis.Redis(host='redis', port=6379, db=0)
+        playlist_obj = json.loads(mycache.get(helper_functions.session_db_path('playlist')))
+        internal_playlist = playlist_obj["playlist"]
+        playlist_id = playlist_obj["playlist_id"]
+        print("playlist from cache", file=sys.stderr)
+        print(playlist_obj, file=sys.stderr)
         # takes the selected song from the frontend response and adds it to our internal playlist with 1 vote
         new_song = request.json
         index = helper_functions.find_index(internal_playlist, new_song["song_uri"])
@@ -103,6 +115,8 @@ def create_app():
             internal_playlist.append(new_song)
             spotify.playlist_add_items(playlist_id, [request.json["song_uri"]])
         helper_functions.sort_playlist(spotify, internal_playlist, playlist_id)
+        playlist_obj["playlist"] = internal_playlist 
+        mycache.set(helper_functions.session_db_path('playlist'), json.dumps(playlist_obj))
         return json.dumps(internal_playlist)
 
 
@@ -117,10 +131,12 @@ def create_app():
             while True:
                 print(datetime.now(), file=sys.stderr)
                 sys.stderr.flush()
-                global internal_playlist
+                mycache = redis.Redis(host='redis', port=6379, db=0)
                 global playlist_is_running
+                playlist_obj = json.loads(mycache.get(helper_functions.session_db_path('playlist')))
+                internal_playlist = playlist_obj["playlist"]
+                playlist_id = playlist_obj["playlist_id"]
                 helper_functions.start_playing(internal_playlist, playlist_is_running)
-                global playlist_id
                 helper_functions.polling_function(internal_playlist, playlist_id)
                 sleep(10)
         thread = Thread(target=background_task)
@@ -138,13 +154,19 @@ def create_app():
     # vote endpoint expects a json object with 2 attributes `vote_direction` and `song_uri`
     @app.route("/vote", methods=["POST"])
     def vote():
-        global internal_playlist
+        # global internal_playlist
+        mycache = redis.Redis(host='redis', port=6379, db=0)
+        playlist_obj = json.loads(mycache.get(helper_functions.session_db_path('playlist')))
+        internal_playlist = playlist_obj["playlist"]
+        playlist_id = playlist_obj["playlist_id"]
         target_index = helper_functions.find_index(internal_playlist, request.json["song_uri"])
         internal_playlist = helper_functions.update_song_vote(internal_playlist, target_index, request.json["vote_direction"])
 
         spotify = helper_functions.get_spotify_api_client()
-        global playlist_id
+        # global playlist_id
         helper_functions.sort_playlist(spotify, internal_playlist, playlist_id)
+        playlist_obj["playlist"] = internal_playlist 
+        mycache.set(helper_functions.session_db_path('playlist'), json.dumps(playlist_obj))
 
         return json.dumps(internal_playlist)
 

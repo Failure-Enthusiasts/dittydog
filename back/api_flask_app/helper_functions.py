@@ -5,6 +5,7 @@ from flask import session
 import spotipy
 import socketio
 import redis
+from flask import redirect
 
 sio = socketio.Client(logger=False, engineio_logger=True)
 
@@ -31,6 +32,9 @@ if not os.path.exists(caches_folder):
 def session_cache_path():
     return caches_folder + session.get('uuid')
 
+def session_db_path(ns):
+    return str(ns) + '.' + session.get('uuid')
+
 def search_result_parsing(results):
         test_names_arr = map(
             lambda x: {
@@ -49,8 +53,10 @@ def search_result_parsing(results):
 
 def get_spotify_api_client():
     # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+    print("in spotify_api_client uuid", file=sys.stderr)
+    print(session.get('uuid'), file=sys.stderr)
     mycache = redis.Redis(host='redis', port=6379, db=0)
-    cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key='token_info')
+    cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=session_db_path('token'))
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
         return redirect('/') # TODO: find a way to tell the front end that it needs to refresh the token. We don't think this works as is
@@ -85,7 +91,7 @@ def find_index(internal_playlist, song_uri):
             return i
     return None
 
-def build_internal_playlist(internal_playlist):
+def build_internal_playlist(internal_playlist=None):
     ## TODO: add functionality to build a new playlist or select exisiting playlist
     spotify = get_spotify_api_client()
     playlist_id = spotify.user_playlist_create(spotify.current_user()["id"], f'{spotify.current_user()["display_name"]}, USE THE DITTYDOG APP TO ADD SONGS, YOU FOOL!', public=True, collaborative=False, description='')["uri"]
