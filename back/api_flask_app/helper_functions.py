@@ -4,7 +4,7 @@ import os
 from flask import session
 import spotipy
 import socketio
-import redis
+from redis_helper import set_cache_playlist, mycache
 from flask import redirect
 
 sio = socketio.Client(logger=False, engineio_logger=True)
@@ -55,7 +55,6 @@ def get_spotify_api_client():
     # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
     print("in spotify_api_client uuid", file=sys.stderr)
     print(session.get('uuid'), file=sys.stderr)
-    mycache = redis.Redis(host='redis', port=6379, db=0)
     cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=session_db_path('token'))
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
@@ -125,7 +124,7 @@ def freeze_upcoming_song(internal_playlist):
     # internal_playlist[0]['locked'] = True
     internal_playlist[1]['locked'] = True
     # internal_playlist[2]['locked'] = True
-    return internal_playlist[1]['song_uri']
+    return internal_playlist[1]['song_uri'], internal_playlist
 
 # any song containing the `locked` attribute that isn't currently playing or upcoming_song is removed from internal_playlist (assuming that these have already been played)
 def prune(enqueued_songs, internal_playlist, playlist_id):
@@ -145,6 +144,8 @@ def prune(enqueued_songs, internal_playlist, playlist_id):
         print(f'PRUNING: {prune_these}', file=sys.stderr)
         spotify = get_spotify_api_client()
         spotify.playlist_remove_all_occurrences_of_items(playlist_id, prune_these)
+    
+    return internal_playlist
 
 def polling_function(internal_playlist, playlist_id):
     playing_song = playing_song_status()
@@ -155,10 +156,12 @@ def polling_function(internal_playlist, playlist_id):
         # freeze upcoming song
             # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
         if (playing_song['half_played'] or playing_song['time_remaining'] < 30000) and len(internal_playlist) > 1:
-            upcoming_song_id = freeze_upcoming_song(internal_playlist)
+            upcoming_song_id, internal_playlist = freeze_upcoming_song(internal_playlist)
             enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
             # trigger the "delete played songs" action
-            prune(enqueued_songs, internal_playlist, playlist_id)
+            internal_playlist = prune(enqueued_songs, internal_playlist, playlist_id)
+            playlist_obj = {'playlist': internal_playlist, 'playlist_id': playlist_id}
+            set_cache_playlist(mycache, playlist_obj)
             # Tell the frontend to manually pull the new playlist
             my_message("Hey FrontEnd, manually pull the new playlist!") # this successfully emits on both sockets - front and backend
 
