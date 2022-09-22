@@ -106,10 +106,11 @@ def playing_song_status():
     current_song = spotify.currently_playing(market=None, additional_types=None)
     print("current song",file=sys.stderr)
     print(str(current_song),file=sys.stderr)
-    if not current_song:
+    if not current_song or not current_song.get('item'):  # handles case when an ad is playing
      return
     playing_song = {}
     # current_song
+
     playing_song['song_uri'] = current_song['item']['uri']
 
     # current playing?
@@ -160,11 +161,10 @@ def polling_function(internal_playlist, playlist_id):
             enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
             # trigger the "delete played songs" action
             internal_playlist = prune(enqueued_songs, internal_playlist, playlist_id)
-            playlist_obj = {'playlist': internal_playlist, 'playlist_id': playlist_id}
-            set_cache_playlist(mycache, playlist_obj)
             # Tell the frontend to manually pull the new playlist
             my_message("Hey FrontEnd, manually pull the new playlist!") # this successfully emits on both sockets - front and backend
 
+    return internal_playlist
 
     # assumptions we're making:
     # - [x] top song is frozen in place at some trigger
@@ -188,6 +188,7 @@ def start_playing(internal_playlist, playlist_is_running):
         # lock the first song
         # if internal_playlist is not None:
         #     internal_playlist[0]['locked'] = True
+    return internal_playlist, playlist_is_running
 
 def sort_playlist(spotify, internal_playlist, playlist_id):
     start = len([song for song in internal_playlist if song['locked']])

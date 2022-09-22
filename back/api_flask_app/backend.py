@@ -15,8 +15,6 @@ from redis_helper import get_cache_playlist, set_cache_playlist, mycache
 
 log = logging.getLogger(__name__)
 
-playlist_is_running = False
-
 def create_app():
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -59,7 +57,8 @@ def create_app():
         internal_playlist, playlist_id = helper_functions.build_internal_playlist()
         playlist_obj = {
             "playlist": internal_playlist, 
-            "playlist_id": playlist_id
+            "playlist_id": playlist_id,
+            "playlist_is_running": False
         }
         set_cache_playlist(mycache, playlist_obj)
 
@@ -124,12 +123,14 @@ def create_app():
             while True:
                 print(datetime.now(), file=sys.stderr)
                 sys.stderr.flush()
-                global playlist_is_running
                 playlist_obj = get_cache_playlist(mycache)
                 internal_playlist = playlist_obj["playlist"]
                 playlist_id = playlist_obj["playlist_id"]
-                helper_functions.start_playing(internal_playlist, playlist_is_running)
-                helper_functions.polling_function(internal_playlist, playlist_id)
+                playlist_is_running = playlist_obj["playlist_is_running"]
+                internal_playlist, playlist_is_running = helper_functions.start_playing(internal_playlist, playlist_is_running)
+                internal_playlist = helper_functions.polling_function(internal_playlist, playlist_id)
+                playlist_obj = {'playlist': internal_playlist, 'playlist_id': playlist_id, 'playlist_is_running': playlist_is_running}
+                set_cache_playlist(mycache, playlist_obj)
                 sleep(10)
         thread = Thread(target=background_task)
         thread.daemon = True
