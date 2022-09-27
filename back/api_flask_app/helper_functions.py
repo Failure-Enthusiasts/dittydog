@@ -4,6 +4,8 @@ import os
 from flask import session
 import spotipy
 import socketio
+from redis_helper import set_cache_playlist, mycache
+from flask import redirect
 
 sio = socketio.Client(logger=False, engineio_logger=True)
 
@@ -30,6 +32,9 @@ if not os.path.exists(caches_folder):
 def session_cache_path():
     return caches_folder + session.get('uuid')
 
+def session_db_path(ns):
+    return str(ns) + '.' + session.get('uuid')
+
 def search_result_parsing(results):
         test_names_arr = map(
             lambda x: {
@@ -47,7 +52,10 @@ def search_result_parsing(results):
         return test_names_arr
 
 def get_spotify_api_client():
-    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+    # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+    print("in spotify_api_client uuid", file=sys.stderr)
+    print(session.get('uuid'), file=sys.stderr)
+    cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=session_db_path('token'))
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
     if not auth_manager.validate_token(cache_handler.get_cached_token()):
         return redirect('/') # TODO: find a way to tell the front end that it needs to refresh the token. We don't think this works as is
@@ -82,7 +90,7 @@ def find_index(internal_playlist, song_uri):
             return i
     return None
 
-def build_internal_playlist(internal_playlist):
+def build_internal_playlist(internal_playlist=None):
     ## TODO: add functionality to build a new playlist or select exisiting playlist
     spotify = get_spotify_api_client()
     playlist_id = spotify.user_playlist_create(spotify.current_user()["id"], f'{spotify.current_user()["display_name"]}, USE THE DITTYDOG APP TO ADD SONGS, YOU FOOL!', public=True, collaborative=False, description='')["uri"]
@@ -96,10 +104,13 @@ def build_internal_playlist(internal_playlist):
 def playing_song_status():
     spotify = get_spotify_api_client()
     current_song = spotify.currently_playing(market=None, additional_types=None)
-    if not current_song:
+    print("current song",file=sys.stderr)
+    print(str(current_song),file=sys.stderr)
+    if not current_song or not current_song.get('item'):  # handles case when an ad is playing
      return
     playing_song = {}
     # current_song
+
     playing_song['song_uri'] = current_song['item']['uri']
 
     # current playing?
@@ -114,7 +125,7 @@ def freeze_upcoming_song(internal_playlist):
     # internal_playlist[0]['locked'] = True
     internal_playlist[1]['locked'] = True
     # internal_playlist[2]['locked'] = True
-    return internal_playlist[1]['song_uri']
+    return internal_playlist[1]['song_uri'], internal_playlist
 
 # any song containing the `locked` attribute that isn't currently playing or upcoming_song is removed from internal_playlist (assuming that these have already been played)
 def prune(enqueued_songs, internal_playlist, playlist_id):
@@ -134,6 +145,8 @@ def prune(enqueued_songs, internal_playlist, playlist_id):
         print(f'PRUNING: {prune_these}', file=sys.stderr)
         spotify = get_spotify_api_client()
         spotify.playlist_remove_all_occurrences_of_items(playlist_id, prune_these)
+    
+    return internal_playlist
 
 def polling_function(internal_playlist, playlist_id):
     playing_song = playing_song_status()
@@ -144,13 +157,14 @@ def polling_function(internal_playlist, playlist_id):
         # freeze upcoming song
             # check conditions - more than 50% done, OR duration left is less than 30 seconds, or...
         if (playing_song['half_played'] or playing_song['time_remaining'] < 30000) and len(internal_playlist) > 1:
-            upcoming_song_id = freeze_upcoming_song(internal_playlist)
+            upcoming_song_id, internal_playlist = freeze_upcoming_song(internal_playlist)
             enqueued_songs = [playing_song['song_uri'], upcoming_song_id]
             # trigger the "delete played songs" action
-            prune(enqueued_songs, internal_playlist, playlist_id)
+            internal_playlist = prune(enqueued_songs, internal_playlist, playlist_id)
             # Tell the frontend to manually pull the new playlist
             my_message("Hey FrontEnd, manually pull the new playlist!") # this successfully emits on both sockets - front and backend
 
+    return internal_playlist
 
     # assumptions we're making:
     # - [x] top song is frozen in place at some trigger
@@ -174,6 +188,7 @@ def start_playing(internal_playlist, playlist_is_running):
         # lock the first song
         # if internal_playlist is not None:
         #     internal_playlist[0]['locked'] = True
+    return internal_playlist, playlist_is_running
 
 def sort_playlist(spotify, internal_playlist, playlist_id):
     start = len([song for song in internal_playlist if song['locked']])

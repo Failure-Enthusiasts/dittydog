@@ -1,7 +1,10 @@
-flask
-spotipy==2.19.0
+flask[async]
+spotipy==2.20.0
 flask-cors
 flask-session
 uuid
 python-socketio==4.6.1
 websocket-client
+aioredis
+redis
+orjson
