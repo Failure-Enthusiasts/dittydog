@@ -1,15 +1,19 @@
 <template>
-  <Main msg="Welcome to Your Vue.js App"/>
+  <!-- <div id="app">
+    <img src="./assets/logo.png"
+    <router-view/>
+  </div> -->
+  <router-view/>
 </template>
 
 <script>
-import Main from './components/Main.vue'
+// import Main from './components/Main.vue'
 
 export default {
   name: 'App',
-  components: {
-    Main
-  }
+  // components: {
+  //   Main
+  // }
 }
 </script>
 
