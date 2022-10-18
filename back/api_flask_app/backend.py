@@ -162,5 +162,6 @@ def create_app():
         print(f'request is: {request.json["query_string"]}', file=sys.stderr)
         playlist_obj = get_specific_cache_playlist(mycache, request.json["query_string"])
         # TODO: return the playlistID and the session ID
+        # TODO: set the session ID from the front end request
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
     return app
