@@ -11,7 +11,7 @@ from threading import Thread
 from datetime import datetime
 import helper_functions
 import logging
-from redis_helper import get_cache_playlist, set_cache_playlist, mycache
+from redis_helper import get_cache_playlist, set_cache_playlist, mycache, get_specific_cache_playlist 
 
 log = logging.getLogger(__name__)
 
@@ -156,5 +156,11 @@ def create_app():
         set_cache_playlist(mycache, playlist_obj)
 
         return json.dumps(internal_playlist)
-
+    
+    @app.route("/get_playlist_id", methods=["POST"])
+    def get_playlist_id():
+        print(f'request is: {request.json["query_string"]}', file=sys.stderr)
+        playlist_obj = get_specific_cache_playlist(mycache, request.json["query_string"])
+        # TODO: return the playlistID and the session ID
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
     return app

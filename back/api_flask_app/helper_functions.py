@@ -35,6 +35,10 @@ def session_cache_path():
 def session_db_path(ns):
     return str(ns) + '.' + session.get('uuid')
 
+def specify_session_db_path(ns, session):
+    print(str(ns) + '.' + session, file=sys.stderr)
+    return str(ns) + '.' + session
+
 def search_result_parsing(results):
         test_names_arr = map(
             lambda x: {
