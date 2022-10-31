@@ -20,6 +20,11 @@
 <script>
 import SongItemWithButtons from "./SongItemWithButtons";
 export default {
+  data() {
+    return {
+      session_id: "",
+    };
+  },
   components: { SongItemWithButtons },
   props: {
     results_arr: Array,
@@ -27,8 +32,19 @@ export default {
   methods: {
     playlist_update: function(value) {
       this.$emit('playlist_update', value);
+      
     },
+    // session_id_update: function(value) {
+      // this.$emit('session_id', session_id);
+
+    // },
   },
+  mounted() {
+    console.log(this.$route.query.session_id)
+    this.session_id = this.$route.query.session_id
+    this.$emit('session_id', this.session_id);
+  },
+  
 };
 </script>
 
