@@ -39,6 +39,7 @@ export default {
         console.log(response.data)
         // this.search_results = response.data;
         // router.push({ path: '/', query: { playlist_id: response.data.playlist_id } })
+        this.$router.push({ path: '/', query: { playlist_id: response.data.playlist_id } })
         return;
       } catch (error) {
         console.log(error);

@@ -160,8 +160,10 @@ def create_app():
     
     @app.route("/get_playlist_id", methods=["POST"])
     def get_playlist_id():
+        session['uuid'] = request.json["query_string"]
         print(f'request is: {request.json["query_string"]}', file=sys.stderr)
         playlist_obj = get_specific_cache_playlist(mycache, request.json["query_string"])
         # TODO: return the playlistID and the session ID
-        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+        # return json.dumps({'playlist_id':playlist_obj["playlist_id"]}), 200, {'ContentType':'application/json'}
+        return json.dumps({'playlist_id': playlist_obj['playlist_id']}), 200, {'ContentType':'application/json'}
     return app
