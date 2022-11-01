@@ -1,6 +1,7 @@
 <template >
   <div class="main-grid">
     <h1 id="title">{{ msg2 }}</h1>
+    <h2> {{session_id}} </h2>
     <div id="search-wrapper">
       <input v-model="spotify_body" @keyup="song_search" placeholder="enter song name" id="search-bar"/>
       <a :href = playlist_link target = "_blank"> <button :class="{ playButtonHidden: play_button_hidden }" @click="start_polling">Start Playlist</button></a>
@@ -10,7 +11,7 @@
         <SearchResult v-bind:results_arr="search_results" v-if="search_mode_on" v-on:addsong="search_mode_on = false, spotify_body = ''" v-on:playlist_update="update_playlist_pls"></SearchResult>
       </div>
       <div id="playlist-wrapper">
-        <Playlist v-bind:results_arr="playlist" v-on:playlist_update="update_playlist_pls"></Playlist>
+        <Playlist v-bind:results_arr="playlist" v-on:playlist_update="update_playlist_pls" v-on:session_id="session_update_pls"></Playlist>
       </div>
     </div>
   </div>
@@ -34,6 +35,7 @@ export default {
       isConnected: false,
       socketMessage: '',
       msg2: "DittyDog",
+      session_id: "",
       play_button_hidden: true,
       spotify_body: "",
       search_results: "",
@@ -134,6 +136,12 @@ export default {
 
       this.playlist = value;
       this.play_button_hidden = value.length < 2;
+    },
+    session_update_pls: function(value){
+      console.log("received updated session_id in main")
+
+      this.session_id = value;
+      // this.play_button_hidden = value.length < 2;
     },
     exit_search: function(e){
       if(e.target.id != 'search-bar') {
