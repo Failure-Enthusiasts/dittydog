@@ -109,7 +109,7 @@ export default {
         try {
           const response = await axios
             .post(
-              "http://localhost/search",
+              this.$hostname + "/search",
               {
                 query_string: this.$data.spotify_body,
                 limit: 7,
@@ -152,7 +152,7 @@ export default {
       try {
           await axios
             .post(
-              "http://localhost/polling_and_pruning",
+              this.$hostname + "/polling_and_pruning",
               {
                 song_uri: 'yes', // (some way to grab the clicked-on song name goes here
                 vote_direction: 'sure'
@@ -172,7 +172,7 @@ export default {
       try {
           const response = await axios
               .get(
-                  "http://localhost/get_playlist",
+                  this.$hostname + "/get_playlist",
                   { withCredentials: true }
               )
               .catch(function(error) {

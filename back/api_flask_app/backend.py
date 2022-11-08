@@ -64,7 +64,7 @@ def create_app():
 
         # Step 4. Signed in, display data
         # return redirect(f'http://localhost:8080/?playlist_id={playlist_id}')
-        return redirect(f'http://localhost:8080/?playlist_id={playlist_id}&session_id={session["uuid"]}')
+        return redirect(f'http://localhost/?playlist_id={playlist_id}&session_id={session["uuid"]}')
 
 
     @app.route("/search", methods=["POST"])

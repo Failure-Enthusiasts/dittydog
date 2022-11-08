@@ -54,7 +54,7 @@ export default {
       console.log(vote_direction)
       const response = await axios
         .post(
-          "http://localhost/vote",
+          this.$hostname + "/vote",
           {
             song_uri: song_uri, // (some way to grab the clicked-on song name goes here),
             vote_direction: vote_direction

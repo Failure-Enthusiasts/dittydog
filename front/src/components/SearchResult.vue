@@ -27,7 +27,7 @@ export default {
       this.$emit("addsong", 'someDataToEmit');
       const response = await axios
         .post(
-          "http://localhost/confirm", search_res,
+          this.$hostname + "/confirm", search_res,
           { withCredentials: true }
         )
         .catch(function (error) {

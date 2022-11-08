@@ -27,7 +27,8 @@ export default {
       try {
         const response = await axios
           .post(
-            "http://localhost/get_playlist_id",
+            // "http://localhost/get_playlist_id",
+            this.$hostname + "/get_playlist_id",
             {
               query_string: this.$data.token
             },
