@@ -75,7 +75,7 @@ def create_app():
             print(session.get('uuid'), file=sys.stderr)
         else:
             print("in get_login_url else", file=sys.stderr)
-            playlist_obj = get_specific_cache_playlist(mycache, request.json["query_string"])
+            playlist_obj = get_specific_cache_playlist(mycache, session.get('uuid'))
             return json.dumps({'playlist_id': playlist_obj['playlist_id'], 'session_id': session.get('uuid')}), 200, {'ContentType':'application/json'}
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
