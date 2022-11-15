@@ -31,6 +31,7 @@ def create_app():
     def index():
         if not session.get('uuid'):
             # Step 1. Visitor is unknown, give random ID
+            log.info("route /, step 1")
             session['uuid'] = str(uuid.uuid4())
 
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
@@ -38,12 +39,14 @@ def create_app():
 
         if request.args.get("code"):
             # Step 3. Being redirected from Spotify auth page
+            log.info("route /, step 3")
             auth_manager.get_access_token(request.args.get("code"))
             return redirect(f'http://localhost:8080/')
 
 
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
             # Step 2. Display sign in link when no token
+            log.info("route /, step 2")
             auth_url = auth_manager.get_authorize_url()
             return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
@@ -56,6 +59,7 @@ def create_app():
         set_cache_playlist(mycache, playlist_obj)
 
         # Step 4. Signed in, display data
+        log.info("route /, step 4")
         # return redirect(f'http://localhost:8080/?playlist_id={playlist_id}')
         # return redirect(f'http://localhost/?playlist_id={playlist_id}&session_id={session["uuid"]}')
         return redirect(f'http://localhost/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
