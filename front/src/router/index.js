@@ -9,13 +9,13 @@ import Login from '@/components/Login'
 const routes = [
     {
       path: '/',
-      name: 'Main',
-      component: Main
-    },
-    {
-      path: '/login',
       name: 'Login',
       component: Login
+    },
+    {
+      path: '/playlist',
+      name: 'Main',
+      component: Main
     }
 ]
 
