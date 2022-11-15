@@ -4,6 +4,7 @@
     <div>
       <input v-model="token" placeholder="Enter token"/>
       <button  @click=submitCreds>Log in to session</button>
+      <div><a :href=loginlink>Log in to session</a></div>
       <!-- <router-link to="/">Log in to session</router-link> -->
     </div>
   </div>
@@ -18,8 +19,27 @@ export default {
   },
   data() {
     return {
-      token: ""
+      token: "",
+      loginlink: "http://www.google.com"
     };
+  },
+  async beforeCreate() {
+    try {
+        const response = await axios
+          .get(
+            // "http://localhost/get_playlist_id",
+            this.$hostname + "/get_login_url",
+            { withCredentials: true }
+          )
+          .catch(function(error) {
+            console.log(error);
+          });
+        console.log(response.data)
+        this.loginlink=response.data 
+        return;
+      } catch (error) {
+        console.log(error);
+      }
   },
   methods: {
     submitCreds: async function() {
