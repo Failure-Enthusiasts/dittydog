@@ -33,6 +33,8 @@ def create_app():
             # Step 1. Visitor is unknown, give random ID
             log.info("route /, step 1")
             session['uuid'] = str(uuid.uuid4())
+        else:
+            print("in / else", file=sys.stderr)
 
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
@@ -60,17 +62,21 @@ def create_app():
 
         # Step 4. Signed in, display data
         log.info("route /, step 4")
-        # return redirect(f'http://localhost:8080/?playlist_id={playlist_id}')
-        # return redirect(f'http://localhost/?playlist_id={playlist_id}&session_id={session["uuid"]}')
         return redirect(f'http://localhost/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
 
     @app.route("/get_login_url", methods=["GET"])
     def get_login_url():
         if not session.get('uuid'):
+            print("in get_login_url if not", file=sys.stderr)
             # Step 1. Visitor is unknown, give random ID
             session['uuid'] = str(uuid.uuid4())
-        # else:
-        #     return session.get('uuid')
+            print(session['uuid'], file=sys.stderr)
+            print("in get_login_url if not -here's the session_id get", file=sys.stderr)
+            print(session.get('uuid'), file=sys.stderr)
+        else:
+            print("in get_login_url else", file=sys.stderr)
+            playlist_obj = get_specific_cache_playlist(mycache, request.json["query_string"])
+            return json.dumps({'playlist_id': playlist_obj['playlist_id'], 'session_id': session.get('uuid')}), 200, {'ContentType':'application/json'}
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
@@ -173,7 +179,6 @@ def create_app():
     def get_playlist_id():
         session['uuid'] = request.json["query_string"]
         print(f'request is: {request.json["query_string"]}', file=sys.stderr)
-        session['uuid'] = request.json["query_string"]
         playlist_obj = get_specific_cache_playlist(mycache, request.json["query_string"])
         
         # TODO: return the playlistID and the session ID

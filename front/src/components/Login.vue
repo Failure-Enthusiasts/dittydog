@@ -28,13 +28,18 @@ export default {
         const response = await axios
           .get(
             // "http://localhost/get_playlist_id",
-            this.$hostname + "/get_login_url",
+            this.$hostname + "/get_login_url", {},
             { withCredentials: true }
           )
           .catch(function(error) {
             console.log(error);
           });
-        console.log(response.data)
+        console.log(response.data);
+        // if (!response.data.match('^http*')){
+        if (response.data.playlist_id){
+          console.log("hi in my regex not match")
+          this.$router.push({ path: '/playlist', query: { playlist_id: response.data, session_id:response.data } })
+        }
         this.loginlink=response.data 
         return;
       } catch (error) {
@@ -60,7 +65,7 @@ export default {
         console.log(response.data)
         // this.search_results = response.data;
         // router.push({ path: '/', query: { playlist_id: response.data.playlist_id } })
-        this.$router.push({ path: '/', query: { playlist_id: response.data.playlist_id } })
+        this.$router.push({ path: '/playlist', query: { playlist_id: response.data.playlist_id } })
         return;
       } catch (error) {
         console.log(error);
