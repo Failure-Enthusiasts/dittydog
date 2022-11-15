@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from flask import Flask, session, request, redirect, copy_current_request_context
+from flask import Flask, session, request, redirect, copy_current_request_context, url_for
 from flask_session import Session
 import spotipy
 from flask_cors import CORS
@@ -32,27 +32,20 @@ def create_app():
         if not session.get('uuid'):
             # Step 1. Visitor is unknown, give random ID
             session['uuid'] = str(uuid.uuid4())
-        # mycache = redis_client.RedisClient()
-        
-        # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=helper_functions.session_cache_path())
-        # await mycache.set("token_info", session['uuid'])
+
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
 
         if request.args.get("code"):
             # Step 3. Being redirected from Spotify auth page
             auth_manager.get_access_token(request.args.get("code"))
-            return redirect('/')
+            return redirect(f'http://localhost:8080/')
+
 
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
             # Step 2. Display sign in link when no token
             auth_url = auth_manager.get_authorize_url()
             return f'<h2><a href="{auth_url}">Sign in</a></h2>'
-
-        # building internal playlist as part of the default auth flow
-        # global internal_playlist
-        # global playlist_id
-        # internal_playlist, playlist_id = helper_functions.build_internal_playlist(internal_playlist=internal_playlist)
 
         internal_playlist, playlist_id = helper_functions.build_internal_playlist()
         playlist_obj = {
@@ -64,8 +57,22 @@ def create_app():
 
         # Step 4. Signed in, display data
         # return redirect(f'http://localhost:8080/?playlist_id={playlist_id}')
-        return redirect(f'http://localhost/?playlist_id={playlist_id}&session_id={session["uuid"]}')
+        # return redirect(f'http://localhost/?playlist_id={playlist_id}&session_id={session["uuid"]}')
+        return redirect(f'http://localhost/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
 
+    @app.route("/get_login_url", methods=["GET"])
+    def get_login_url():
+        if not session.get('uuid'):
+            # Step 1. Visitor is unknown, give random ID
+            session['uuid'] = str(uuid.uuid4())
+        # else:
+        #     return session.get('uuid')
+        cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
+        auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            # Step 2. Display sign in link when no token
+            auth_url = auth_manager.get_authorize_url()
+        return auth_url
 
     @app.route("/search", methods=["POST"])
     def search():
