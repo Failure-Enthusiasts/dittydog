@@ -33,8 +33,10 @@ def create_app():
             # Step 1. Visitor is unknown, give random ID
             log.info("route /, step 1")
             session['uuid'] = str(uuid.uuid4())
+            print(f"login456 session is {session} in step 1 if", file=sys.stderr)
         else:
             print("in / else", file=sys.stderr)
+            print(f"login456 session is {session}", file=sys.stderr)
 
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
@@ -43,25 +45,34 @@ def create_app():
             # Step 3. Being redirected from Spotify auth page
             log.info("route /, step 3")
             auth_manager.get_access_token(request.args.get("code"))
+            print(f"login456 session is {session} in step 3", file=sys.stderr)
             return redirect(f'http://localhost:8080/')
 
 
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
             # Step 2. Display sign in link when no token
             log.info("route /, step 2")
+            print(f"login456 session is {session} in step 2", file=sys.stderr)
             auth_url = auth_manager.get_authorize_url()
             return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
-        internal_playlist, playlist_id = helper_functions.build_internal_playlist()
-        playlist_obj = {
-            "playlist": internal_playlist, 
-            "playlist_id": playlist_id,
-            "playlist_is_running": False
-        }
-        set_cache_playlist(mycache, playlist_obj)
+        #  logic to check if there's a playlist that corresponds to the session ID
+        playlist_obj = get_specific_cache_playlist(mycache, session.get('uuid'))
+        if playlist_obj is not None:
+            print(f"login456 session already exists pulling the ID", file=sys.stderr)
+            playlist_id = playlist_obj['playlist_id']
+        else:
+            internal_playlist, playlist_id = helper_functions.build_internal_playlist()
+            playlist_obj = {
+                "playlist": internal_playlist, 
+                "playlist_id": playlist_id,
+                "playlist_is_running": False
+            }
+            set_cache_playlist(mycache, playlist_obj)
 
         # Step 4. Signed in, display data
         log.info("route /, step 4")
+        print(f"login456 session is {session} in step 4", file=sys.stderr)
         return redirect(f'http://localhost/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
 
     @app.route("/get_login_url", methods=["GET"])
@@ -180,8 +191,9 @@ def create_app():
         session['uuid'] = request.json["query_string"]
         print(f'request is: {request.json["query_string"]}', file=sys.stderr)
         playlist_obj = get_specific_cache_playlist(mycache, request.json["query_string"])
-        
         # TODO: return the playlistID and the session ID
         # return json.dumps({'playlist_id':playlist_obj["playlist_id"]}), 200, {'ContentType':'application/json'}
+        if playlist_obj is None:
+            json.dumps({'error': 'playlist not found'}), 404, {'ContentType':'application/json'}
         return json.dumps({'playlist_id': playlist_obj['playlist_id']}), 200, {'ContentType':'application/json'}
     return app
