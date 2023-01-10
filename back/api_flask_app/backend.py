@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from flask import Flask, session, request, redirect, copy_current_request_context
+from flask import Flask, session, request, redirect, copy_current_request_context, url_for
 from flask_session import Session
 import spotipy
 from flask_cors import CORS
@@ -11,7 +11,7 @@ from threading import Thread
 from datetime import datetime
 import helper_functions
 import logging
-from redis_helper import get_cache_playlist, set_cache_playlist, mycache
+from redis_helper import get_cache_playlist, set_cache_playlist, mycache, get_specific_cache_playlist 
 
 log = logging.getLogger(__name__)
 
@@ -31,40 +31,69 @@ def create_app():
     def index():
         if not session.get('uuid'):
             # Step 1. Visitor is unknown, give random ID
+            log.info("route /, step 1")
             session['uuid'] = str(uuid.uuid4())
-        # mycache = redis_client.RedisClient()
-        
-        # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=helper_functions.session_cache_path())
-        # await mycache.set("token_info", session['uuid'])
+            print(f"login456 session is {session} in step 1 if", file=sys.stderr)
+        else:
+            print("in / else", file=sys.stderr)
+            print(f"login456 session is {session}", file=sys.stderr)
+
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
 
         if request.args.get("code"):
             # Step 3. Being redirected from Spotify auth page
+            log.info("route /, step 3")
             auth_manager.get_access_token(request.args.get("code"))
-            return redirect('/')
+            print(f"login456 session is {session} in step 3", file=sys.stderr)
+            return redirect(f'http://localhost:8080/')
+
 
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
             # Step 2. Display sign in link when no token
+            log.info("route /, step 2")
+            print(f"login456 session is {session} in step 2", file=sys.stderr)
             auth_url = auth_manager.get_authorize_url()
             return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
-        # building internal playlist as part of the default auth flow
-        # global internal_playlist
-        # global playlist_id
-        # internal_playlist, playlist_id = helper_functions.build_internal_playlist(internal_playlist=internal_playlist)
-
-        internal_playlist, playlist_id = helper_functions.build_internal_playlist()
-        playlist_obj = {
-            "playlist": internal_playlist, 
-            "playlist_id": playlist_id,
-            "playlist_is_running": False
-        }
-        set_cache_playlist(mycache, playlist_obj)
+        #  logic to check if there's a playlist that corresponds to the session ID
+        playlist_obj = get_specific_cache_playlist(mycache, session.get('uuid'))
+        if playlist_obj is not None:
+            print(f"login456 session already exists pulling the ID", file=sys.stderr)
+            playlist_id = playlist_obj['playlist_id']
+        else:
+            internal_playlist, playlist_id = helper_functions.build_internal_playlist()
+            playlist_obj = {
+                "playlist": internal_playlist, 
+                "playlist_id": playlist_id,
+                "playlist_is_running": False
+            }
+            set_cache_playlist(mycache, playlist_obj)
 
         # Step 4. Signed in, display data
-        return redirect(f'http://localhost:8080/?playlist_id={playlist_id}')
+        log.info("route /, step 4")
+        print(f"login456 session is {session} in step 4", file=sys.stderr)
+        return redirect(f'http://localhost/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
 
+    @app.route("/get_login_url", methods=["GET"])
+    def get_login_url():
+        if not session.get('uuid'):
+            print("in get_login_url if not", file=sys.stderr)
+            # Step 1. Visitor is unknown, give random ID
+            session['uuid'] = str(uuid.uuid4())
+            print(session['uuid'], file=sys.stderr)
+            print("in get_login_url if not -here's the session_id get", file=sys.stderr)
+            print(session.get('uuid'), file=sys.stderr)
+        else:
+            print("in get_login_url else", file=sys.stderr)
+            playlist_obj = get_specific_cache_playlist(mycache, session.get('uuid'))
+            return json.dumps({'playlist_id': playlist_obj['playlist_id'], 'session_id': session.get('uuid')}), 200, {'ContentType':'application/json'}
+        cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
+        auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
+        if not auth_manager.validate_token(cache_handler.get_cached_token()):
+            # Step 2. Display sign in link when no token
+            auth_url = auth_manager.get_authorize_url()
+        return auth_url
 
     @app.route("/search", methods=["POST"])
     def search():
@@ -156,5 +185,15 @@ def create_app():
         set_cache_playlist(mycache, playlist_obj)
 
         return json.dumps(internal_playlist)
-
+    
+    @app.route("/get_playlist_id", methods=["POST"])
+    def get_playlist_id():
+        session['uuid'] = request.json["query_string"]
+        print(f'request is: {request.json["query_string"]}', file=sys.stderr)
+        playlist_obj = get_specific_cache_playlist(mycache, request.json["query_string"])
+        # TODO: return the playlistID and the session ID
+        # return json.dumps({'playlist_id':playlist_obj["playlist_id"]}), 200, {'ContentType':'application/json'}
+        if playlist_obj is None:
+            json.dumps({'error': 'playlist not found'}), 404, {'ContentType':'application/json'}
+        return json.dumps({'playlist_id': playlist_obj['playlist_id']}), 200, {'ContentType':'application/json'}
     return app

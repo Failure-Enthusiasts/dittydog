@@ -21,7 +21,7 @@ const io = socketIo(server, {
   cors: {
     credentials: true,
     // origin: "http://localhost:8080",
-    origin: ['http://localhost:8080', 'http://0.0.0.0:80', 'http://localhost:80', 'http://127.0.0.1:80'],
+    origin: ['http://localhost:8080', 'http://0.0.0.0:80', 'http://localhost:80', 'http://127.0.0.1:80', 'http://localhost'],
     methods: ["GET", "POST"]
   }
 });
