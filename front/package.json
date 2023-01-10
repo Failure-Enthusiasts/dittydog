@@ -3,14 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "sudo vue-cli-service serve --port 80",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "axios": "^0.22.0",
     "core-js": "^3.6.5",
-    "vue": "^3.0.0"
+    "npm": "^8.5.3",
+    "socket.io": "^4.5.1",
+    "socket.io-client": "^4.5.1",
+    "vue": "^3.0.0",
+    "vue-3-socket.io": "^1.0.5",
+    "vue-router": "^4.1.5",
+    "vue-socket.io": "^3.0.10"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

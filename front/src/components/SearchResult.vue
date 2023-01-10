@@ -8,6 +8,7 @@
       v-bind:song_name="search_result.song_name"
       v-bind:artist_name="search_result.artist_name"
       v-bind:album_url="search_result.img_link"
+      v-bind:locked="search_result.locked"
     >
     </SongItem>
   </div>
@@ -23,10 +24,10 @@ export default {
   },
   methods: {
     song_confirm: async function (search_res) {
-      this.$emit("addsong");
+      this.$emit("addsong", 'someDataToEmit');
       const response = await axios
         .post(
-          "http://localhost/confirm", search_res,
+          this.$hostname + "/confirm", search_res,
           { withCredentials: true }
         )
         .catch(function (error) {

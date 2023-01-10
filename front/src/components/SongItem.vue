@@ -1,6 +1,6 @@
 <template>
   <div>
-    <img :src=album_url>
+    <img :src=album_url class="albumArt">
     <p class="itemwrapper">
       {{ song_name }} -
       {{ artist_name }}
@@ -15,12 +15,13 @@ export default {
     artist_name: String,
     album_name: String,
     album_url: String,
+    locked: Boolean
   },
 }
 </script>
 
 <style scoped>
-img {
+.albumArt {
   width:40px;
   display: inline-block;
   vertical-align: middle;

@@ -12,4 +12,10 @@ Spin up frontend:
 `npm install`
 `npm run serve`
 
-Playlist: https://open.spotify.com/playlist/6bMWOcbmA9X1sl30boENAD
+Spin up websocket: from `server` dir
+`npm install`
+`npm start`
+
+
+Socket ref: https://www.digitalocean.com/community/tutorials/vuejs-vue-socketio
+

@@ -1,5 +1,0 @@
-flask
-spotipy==2.19.0
-flask-cors
-flask-session
-uuid
