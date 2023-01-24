@@ -93,6 +93,7 @@ def create_app():
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
             # Step 2. Display sign in link when no token
             auth_url = auth_manager.get_authorize_url()
+        print(f"THIS IS THE AUTH_URL: {auth_url}", file=sys.stderr)
         return auth_url
 
     @app.route("/search", methods=["POST"])
