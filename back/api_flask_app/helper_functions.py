@@ -22,8 +22,12 @@ def my_message(data):
 def disconnect():
     print("disconnected from server", flush=True)
 
-print("before sio.connect", file=sys.stderr)
-sio.connect("http://host.docker.internal:4001")
+try:
+    print("before sio.connect", file=sys.stderr)
+    sio.connect("http://host.docker.internal:4001")
+except:
+    print("error connecting to middleware", file=sys.stderr)
+
 
 caches_folder = './.spotify_caches/'
 if not os.path.exists(caches_folder):
