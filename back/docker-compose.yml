@@ -13,8 +13,6 @@ services:
       - REDIS_URL=redis://redis:6379
     ports:
       - "8080:8080"
-    volumes:
-      - ./api_flask_app:/app
   redis:
     image: "redis:alpine"
     command: redis-server
