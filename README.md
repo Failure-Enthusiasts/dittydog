@@ -7,6 +7,17 @@ Requirements:
 - git
 - docker
 
+
+## New hotness:
+
+```
+cd back
+./the_startup_script_of_the_century.sh
+
+
+```
+
+## Old way:
 Spin up backend: `docker-compose up --build`  
 Spin up frontend:
 `npm install`

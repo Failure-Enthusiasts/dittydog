@@ -8,12 +8,22 @@ services:
     environment:
       - FLASK_APP=backend.py
       - FLASK_ENV=development
+      - FLASK_DEBUG=1
       - FLASK_RUN_PORT=8080
       - REDIS_URL=redis://redis:6379
     ports:
       - "8080:8080"
+    volumes:
+      - ./api_flask_app:/app
   redis:
     image: "redis:alpine"
     command: redis-server
     ports:
       - "6385:6379"
+  middleware-server:
+    image: middleware-server
+    build: ../server
+    container_name: middleware-server
+    ports:
+      - "4001:4001"
+
