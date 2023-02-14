@@ -24,7 +24,8 @@ def disconnect():
 
 try:
     print("before sio.connect", file=sys.stderr)
-    sio.connect("http://host.docker.internal:4001")
+    middleware = os.getenv('MIDDLEWARE_URL')
+    sio.connect(middleware)
 except:
     print("error connecting to middleware", file=sys.stderr)
 
