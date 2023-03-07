@@ -8,3 +8,4 @@ websocket-client
 aioredis
 redis
 orjson
+boto3

@@ -12,8 +12,31 @@ from datetime import datetime
 import helper_functions
 import logging
 from redis_helper import get_cache_playlist, set_cache_playlist, mycache, get_specific_cache_playlist 
+import boto3
 
 log = logging.getLogger(__name__)
+os_vars = [
+    'SPOTIPY_CLIENT_ID',
+    'SPOTIPY_CLIENT_SECRET',
+    'SPOTIPY_REDIRECT_URI',
+]
+
+def get_parameter(name, with_decryption=False):
+    ssm = boto3.client("ssm")
+
+    parameter_prefix = "/dittydog/"
+
+    return ssm.get_parameter(
+        Name=parameter_prefix + name, WithDecryption=with_decryption
+    )["Parameter"]["Value"]
+
+if os.environ['ECS_Fargate'] == "True":
+    for var in os_vars:
+        os.environ[var] = get_parameter(var)
+        log.info(f'Loaded Spotipy env var from AWS via ssm / boto3. Env var is: {var}')
+else:
+    log.info(f'Failed to load Spotipy env var from AWS via ssm / boto3.')
+
 
 def create_app():
     # create and configure the app
@@ -22,6 +45,12 @@ def create_app():
     app.config['SECRET_KEY'] = os.urandom(64)
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['SESSION_FILE_DIR'] = './.flask_session/'
+    # env vars
+    # if os.environ('APP_FROM_MANIFEST'):
+    #     app.config['SPOTIPY_CLIENT_ID'] = os.environ['SPOTIPY_CLIENT_ID']
+    #     app.config['SPOTIPY_CLIENT_SECRET'] = os.environ['SPOTIPY_CLIENT_SECRET']
+    #     app.config['SPOTIPY_REDIRECT_URI'] = os.environ['SPOTIPY_REDIRECT_URI']
+
     Session(app)
     ## this doesn't work -- how do we share the Redis client across routes?
     # mycache = redis_client.RedisClient()
