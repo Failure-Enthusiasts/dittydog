@@ -34,8 +34,10 @@ if os.environ['ECS_Fargate'] == "True":
     for var in os_vars:
         os.environ[var] = get_parameter(var)
         log.info(f'Loaded Spotipy env var from AWS via ssm / boto3. Env var is: {var}')
+        print( f'Loaded Spotipy env var from AWS via ssm / boto3. Env var is: {var}', file=sys.stderr)
 else:
     log.info(f'Failed to load Spotipy env var from AWS via ssm / boto3.')
+    print( 'Failed to load Spotipy env var from AWS via ssm / boto3.', file=sys.stderr)
 
 
 def create_app():
