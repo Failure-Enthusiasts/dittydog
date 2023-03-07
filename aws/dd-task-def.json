@@ -6,8 +6,7 @@
   "containerDefinitions": [
     {
       "name": "spotify-backend",
-      "image": "bradleyjay/spotify-backend:aws_test_deploy",
-      "essential": true,
+      "image": "docker.io/bradleyjay/spotify-backend:aws_test_deploy3",
       "portMappings": [
         {
           "containerPort": 8080,
@@ -24,7 +23,7 @@
           "value": "development"
         },
         {
-          "name": "FLASK_DEBUG",
+          "name": "FLASK_DEBUG",  
           "value": "1"
         },
         {
@@ -33,16 +32,32 @@
         },
         {
           "name": "REDIS_URL",
-          "value": "redis://redis:6385"
+          "value": "redis://localhost:6385"
+        },
+        {
+          "name": "MIDDLEWARE_URL",
+          "value": "http://localhost:4001"
+        },
+        {
+          "name": "ECS_Fargate",
+          "value": "True"
         }
       ],
       "linuxParameters": {
         "initProcessEnabled": true
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "/ecs/cahillsf-ecs-fargate",
+            "awslogs-region": "ap-northeast-2",
+            "awslogs-stream-prefix": "dittydog"
+        }
       }
     },
     {
       "name": "middleware-server",
-      "image": "bradleyjay/spotify-middleware:aws_test_deploy",
+      "image": "docker.io/bradleyjay/spotify-middleware:aws_test_deploy",
       "cpu": 100,
       "memory": 512,
       "essential": true,
@@ -54,6 +69,14 @@
       ],
       "linuxParameters": {
         "initProcessEnabled": true
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "/ecs/cahillsf-ecs-fargate",
+            "awslogs-region": "ap-northeast-2",
+            "awslogs-stream-prefix": "dittydog"
+        }
       }
     },
     {
@@ -70,6 +93,14 @@
       ],
       "linuxParameters": {
         "initProcessEnabled": true
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "/ecs/cahillsf-ecs-fargate",
+            "awslogs-region": "ap-northeast-2",
+            "awslogs-stream-prefix": "dittydog"
+        }
       }
     }
   ],
