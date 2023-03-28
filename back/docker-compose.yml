@@ -26,4 +26,9 @@ services:
     container_name: middleware-server
     ports:
       - "4001:4001"
-
+  frontend:
+    image: frontend
+    build: ../front
+    container_name: frontend
+    ports:
+      - "80:80"
