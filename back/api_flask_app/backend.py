@@ -30,14 +30,21 @@ def get_parameter(name, with_decryption=False):
         Name=parameter_prefix + name, WithDecryption=with_decryption
     )["Parameter"]["Value"]
 
+logger = logging.getLogger(__name__)
 if os.environ['ECS_Fargate'] == "True":
-    for var in os_vars:
-        os.environ[var] = get_parameter(var)
-        log.info(f'Loaded Spotipy env var from AWS via ssm / boto3. Env var is: {var}')
-        print( f'Loaded Spotipy env var from AWS via ssm / boto3. Env var is: {var}', file=sys.stderr)
+    try: 
+        for var in os_vars:
+            os.environ[var] = get_parameter(var)
+            log.info(f'Loaded Spotipy env var from AWS via ssm / boto3. Env var is: {var}')
+            print( f'Loaded Spotipy env var from AWS via ssm / boto3. Env var is: {var}', file=sys.stderr)
+    except Exception as error: 
+        logger.error(error)
+        log.info(f'Failed to load Spotipy env var from AWS via ssm / boto3.')
+        print( 'Failed to load Spotipy env var from AWS via ssm / boto3.', file=sys.stderr)
+        raise
 else:
-    log.info(f'Failed to load Spotipy env var from AWS via ssm / boto3.')
-    print( 'Failed to load Spotipy env var from AWS via ssm / boto3.', file=sys.stderr)
+    log.info(f'Missing ECS_Fargate env var. Are you running locally?')
+    print( 'Missing ECS_Fargate env var. Are you running locally?', file=sys.stderr)
 
 
 def create_app():
