@@ -8,7 +8,7 @@
     </div>
     <div id="wrapper-wrapper">
       <div id="result-wrapper">
-        <SearchResult v-bind:results_arr="search_results" v-if="search_mode_on" v-on:addsong="search_mode_on = false, spotify_body = ''" v-on:playlist_update="update_playlist_pls"></SearchResult>
+        <SearchResult v-bind:results_arr="search_results" v-show="search_mode_on" v-on:addsong="search_mode_on = false, spotify_body = ''" v-on:playlist_update="update_playlist_pls"></SearchResult>
       </div>
       <div id="playlist-wrapper">
         <Playlist v-bind:results_arr="playlist" v-on:playlist_update="update_playlist_pls" v-on:session_id="session_update_pls"></Playlist>
