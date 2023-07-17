@@ -46,3 +46,9 @@ docker tag bradleyjay/spotify-backend:aws_test_deploy bradleyjay/spotify-backend
 
 docker push bradleyjay/spotify-backend:aws_test_deploy
 ```
+## AWS ECS :
+
+- upload the task definition
+  ```
+  aws-vault exec sandbox-account-admin -- aws ecs register-task-definition --endpoint-url https://ecs.ap-northeast-2.amazonaws.com --cli-input-json file://./aws/dd-task-def.json
+  ```

@@ -6,7 +6,7 @@
   "containerDefinitions": [
     {
       "name": "spotify-backend",
-      "image": "docker.io/bradleyjay/spotify-backend:aws_test_deploy3",
+      "image": "public.ecr.aws/b1o7r7e0/be-dittydog:7-10-23",
       "portMappings": [
         {
           "containerPort": 8080,
@@ -57,10 +57,9 @@
     },
     {
       "name": "middleware-server",
-      "image": "docker.io/bradleyjay/spotify-middleware:aws_test_deploy",
+      "image": "public.ecr.aws/b1o7r7e0/mw-dittydog:7-10-23",
       "cpu": 100,
       "memory": 512,
-      "essential": true,
       "portMappings": [
         {
           "containerPort": 4001,
@@ -84,11 +83,33 @@
       "image": "redis:alpine",
       "cpu": 100,
       "memory": 512,
-      "essential": true,
       "portMappings": [
         {
           "containerPort": 6385,
           "hostPort": 6385
+        }
+      ],
+      "linuxParameters": {
+        "initProcessEnabled": true
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "/ecs/cahillsf-ecs-fargate",
+            "awslogs-region": "ap-northeast-2",
+            "awslogs-stream-prefix": "dittydog"
+        }
+      }
+    },
+    {
+      "name": "dittydog-frontend",
+      "image": "public.ecr.aws/b1o7r7e0/fe-dittydog:7-10-23",
+      "cpu": 100,
+      "memory": 512,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80
         }
       ],
       "linuxParameters": {
@@ -108,6 +129,6 @@
     "EC2",
     "FARGATE"
   ],
-  "cpu": "256",
-  "memory": "512"
+  "cpu": "512",
+  "memory": "1024"
 }
