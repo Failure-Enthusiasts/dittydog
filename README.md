@@ -52,3 +52,9 @@ docker push bradleyjay/spotify-backend:aws_test_deploy
   ```
   aws-vault exec sandbox-account-admin -- aws ecs register-task-definition --endpoint-url https://ecs.ap-northeast-2.amazonaws.com --cli-input-json file://./aws/dd-task-def.json
   ```
+
+- SSO version:
+  ```
+  aws-vault exec sso-sandbox-account-admin -- aws ecs register-task-definition  --region ap-northeast-2  --endpoint-url https://ecs.ap-northeast-2.amazonaws.com --cli-input-json file://./aws/dd-task-def.json 
+
+  ```
