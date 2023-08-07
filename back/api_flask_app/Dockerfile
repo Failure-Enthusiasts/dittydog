@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM --platform=linux/amd64 python:3.8-slim-buster
 WORKDIR /app
 COPY backend.py helper_functions.py requirements.txt redis_helper.py ./
 # COPY ./ ./

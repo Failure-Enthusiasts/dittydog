@@ -1,5 +1,6 @@
 # FROM node:lts-alpine as build-stage
-FROM node:14 as build-stage
+# FROM node:14 as build-stage
+FROM --platform=linux/amd64 node:14 as build-stage
 WORKDIR /app
 # COPY package*.json ./
 COPY package.json ./
