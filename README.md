@@ -67,7 +67,7 @@ docker push bradleyjay/spotify-backend:aws_test_deploy
   ```
   LOAD_BALANCER=$(aws-vault exec sso-sandbox-account-admin -- aws elbv2 create-load-balancer --name dittydog-lb --subnets=$DBLQUOTE_SPACE_SEP_PRIVATE_SUBNETS --security-groups $DITTYDOG_LB_SG_2 --scheme internet-facing --region ap-northeast-2 --query "LoadBalancers[0].LoadBalancerArn" | tr -d '"')
   ```
-  - need to wait until the load balancer is provisioned before proceeding
+  - need to wait until the load balancer is provisioned before proceeding: `aws elbv2 --region ap-northeast-2 describe-load-balancers --load-balancer-arns ${LOAD_BALANCER}`
 
 - create the listener:
   ```
@@ -78,3 +78,7 @@ docker push bradleyjay/spotify-backend:aws_test_deploy
   ```
   aws-vault exec sso-sandbox-account-admin -- aws ecs create-service --cluster cahillsf-fg --service-name dittydog --task-definition dittydog:18 --enable-execute-command --desired-count 1 --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[$COMMA_SEP_PRIVATE_SUBNETS],securityGroups=[$DITTYDOG_LB_SG_1],assignPublicIp=ENABLED}" --load-balancers '[{"targetGroupArn": "'"$TARGET_GROUP"'", "containerName": "dittydog-frontend","containerPort": 80}]' --region ap-northeast-2
   ```
+
+### Run the startup script
+- make the shell file executable `chmod 755 launch-ecs-service.sh`
+- `source ./launch-ecs-service.sh`
