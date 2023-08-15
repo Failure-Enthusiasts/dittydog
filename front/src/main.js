@@ -6,7 +6,8 @@ import router from './router'
 // import SocketIO from 'socket.io-client'
 
 const app = createApp(App)
-app.config.globalProperties.$hostname = 'http://localhost:8080'
+// app.config.globalProperties.$hostname = 'http://localhost:8080'
+app.config.globalProperties.$hostname = '/api'
 
 app.use(
   new VueSocketIO({
