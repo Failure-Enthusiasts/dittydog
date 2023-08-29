@@ -111,3 +111,16 @@ docker push bradleyjay/spotify-backend:aws_test_deploy
 
 7) Log into the app.
    1) Hop over to the load balancer again. Copy the DNS URL, paste that into your browser.
+
+8) To log into our container while it's running:
+
+```
+ aws-vault exec sso-sandbox-account-admin -- aws ecs execute-command \
+  --region ap-northeast-2 \
+  --cluster cahillsf-fg \
+  --task <task number> \
+  --container dittydog-frontend \
+  --command "sh" \
+  --interactive
+
+```
