@@ -108,3 +108,6 @@ docker push bradleyjay/spotify-backend:aws_test_deploy
 6) While everything is provisioning, go find:
    1) The load balancer. Search Load Balancers in the AWS search bar, click on "EC2 feature", look for *dittydog-lb*.
    2) Check the cluster for the deployed containers: [cahillsf-fg](https://ap-northeast-2.console.aws.amazon.com/ecs/v2/clusters/cahillsf-fg/services?region=ap-northeast-2)
+
+7) Log into the app.
+   1) Hop over to the load balancer again. Copy the DNS URL, paste that into your browser.
