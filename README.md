@@ -79,6 +79,32 @@ docker push bradleyjay/spotify-backend:aws_test_deploy
   aws-vault exec sso-sandbox-account-admin -- aws ecs create-service --cluster cahillsf-fg --service-name dittydog --task-definition dittydog:18 --enable-execute-command --desired-count 1 --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[$COMMA_SEP_PRIVATE_SUBNETS],securityGroups=[$DITTYDOG_LB_SG_1],assignPublicIp=ENABLED}" --load-balancers '[{"targetGroupArn": "'"$TARGET_GROUP"'", "containerName": "dittydog-frontend","containerPort": 80}]' --region ap-northeast-2
   ```
 
-### Run the startup script
+### To run the startup script:
+1) Source env vars (Brad's machine? `source aws/.dittydog_env_vars.sh`)
+2) Ensure the `aws/dd-task-def.json` includes the right image version:
+
+```
+
+"containerDefinitions": [
+    {
+      "name": "spotify-backend",
+      "image": "public.ecr.aws/b1o7r7e0/be-dittydog:8-14-23",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080
+        }
+      ],
+
+```
+3) Ensure the `aws/dd-task-def.json` has the correct `taskRoleArn` and `executionRoleArn` values (i.e., not blank)
+
+4) Login to [AWS](https://d-906757b57c.awsapps.com/start#/)
+
+5) Run the script
 - make the shell file executable `chmod 755 launch-ecs-service.sh`
 - `source ./launch-ecs-service.sh`
+
+6) While everything is provisioning, go find:
+   1) The load balancer. Search Load Balancers in the AWS search bar, click on "EC2 feature", look for *dittydog-lb*.
+   2) Check the cluster for the deployed containers: [cahillsf-fg](https://ap-northeast-2.console.aws.amazon.com/ecs/v2/clusters/cahillsf-fg/services?region=ap-northeast-2)
