@@ -6,7 +6,7 @@
   "containerDefinitions": [
     {
       "name": "spotify-backend",
-      "image": "public.ecr.aws/b1o7r7e0/be-dittydog:7-17-23",
+      "image": "public.ecr.aws/b1o7r7e0/be-dittydog:8-14-23",
       "portMappings": [
         {
           "containerPort": 8080,
@@ -103,7 +103,7 @@
     },
     {
       "name": "dittydog-frontend",
-      "image": "public.ecr.aws/b1o7r7e0/fe-dittydog:8-7-23",
+      "image": "public.ecr.aws/b1o7r7e0/fe-dittydog:8-14-23",
       "cpu": 100,
       "memory": 512,
       "portMappings": [
