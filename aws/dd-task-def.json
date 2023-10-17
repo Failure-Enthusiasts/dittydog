@@ -2,11 +2,11 @@
   "family": "dittydog",
   "networkMode": "awsvpc",
   "taskRoleArn": "",
-  "executionRoleArn": "",
+  "executionRoleArn": "e",
   "containerDefinitions": [
     {
       "name": "spotify-backend",
-      "image": "public.ecr.aws/b1o7r7e0/be-dittydog:8-14-23",
+      "image": "public.ecr.aws/b1o7r7e0/be-dittydog:10-16-23",
       "portMappings": [
         {
           "containerPort": 8080,
@@ -41,6 +41,10 @@
         {
           "name": "ECS_Fargate",
           "value": "True"
+        },
+        {
+          "name": "FRONTEND_DOMAIN",
+          "value": "<UPDATE_ME>"
         }
       ],
       "linuxParameters": {

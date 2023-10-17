@@ -1,8 +1,12 @@
 import helper_functions
 import json
 import redis
+import os
 
-mycache = redis.Redis(host='redis', port=6379, db=0)
+if os.environ['ECS_Fargate'] == "True":
+    mycache = redis.Redis(host='localhost', port=6379, db=0)
+else:
+    mycache = redis.Redis(host='redis', port=6379, db=0)
 
 
 def get_cache_playlist(mycache):

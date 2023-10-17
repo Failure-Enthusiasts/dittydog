@@ -11,7 +11,8 @@ from threading import Thread
 from datetime import datetime
 import helper_functions
 import logging
-from redis_helper import get_cache_playlist, set_cache_playlist, mycache, get_specific_cache_playlist 
+from redis_helper import get_cache_playlist, set_cache_playlist, get_specific_cache_playlist, mycache
+from prefix import PrefixMiddleware
 import boto3
 
 log = logging.getLogger(__name__)
@@ -55,14 +56,13 @@ def create_app():
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['SESSION_FILE_DIR'] = './.flask_session/'
 
-    app.config["APPLICATION_ROOT"] = "/api/" # WIP: from here: https://stackoverflow.com/questions/18967441/add-a-prefix-to-all-flask-routes
-
     # env vars
     # if os.environ('APP_FROM_MANIFEST'):
     #     app.config['SPOTIPY_CLIENT_ID'] = os.environ['SPOTIPY_CLIENT_ID']
     #     app.config['SPOTIPY_CLIENT_SECRET'] = os.environ['SPOTIPY_CLIENT_SECRET']
     #     app.config['SPOTIPY_REDIRECT_URI'] = os.environ['SPOTIPY_REDIRECT_URI']
-
+    app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/api')
+    domain = os.environ['FRONTEND_DOMAIN']
     Session(app)
     ## this doesn't work -- how do we share the Redis client across routes?
     # mycache = redis_client.RedisClient()
@@ -87,7 +87,7 @@ def create_app():
             log.info("route /, step 3")
             auth_manager.get_access_token(request.args.get("code"))
             print(f"login456 session is {session} in step 3", file=sys.stderr)
-            return redirect(f'http://localhost:8080/')
+            return redirect(f'http://{domain}:8080/')
 
 
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
@@ -114,7 +114,7 @@ def create_app():
         # Step 4. Signed in, display data
         log.info("route /, step 4")
         print(f"login456 session is {session} in step 4", file=sys.stderr)
-        return redirect(f'http://localhost/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
+        return redirect(f'http://{domain}/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
 
     @app.route("/get_login_url", methods=["GET"])
     def get_login_url():
