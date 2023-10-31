@@ -21,3 +21,6 @@ done
 aws-vault exec sso-sandbox-account-admin -- aws elbv2 create-listener --load-balancer-arn=$LOAD_BALANCER --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=$TARGET_GROUP --region ap-northeast-2
 
 aws-vault exec sso-sandbox-account-admin -- aws ecs create-service --cluster cahillsf-fg --service-name dittydog --task-definition dittydog:21 --enable-execute-command --desired-count 1 --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[$COMMA_SEP_PRIVATE_SUBNETS],securityGroups=[$DITTYDOG_LB_SG_1],assignPublicIp=ENABLED}" --load-balancers '[{"targetGroupArn": "'"$TARGET_GROUP"'", "containerName": "dittydog-frontend","containerPort": 80}]' --region ap-northeast-2
+
+# we tried using latest to automatically use the most recent revision, no bueno :(
+# aws-vault exec sso-sandbox-account-admin -- aws ecs create-service --cluster cahillsf-fg --service-name dittydog --task-definition dittydog:latest --enable-execute-command --desired-count 1 --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[$COMMA_SEP_PRIVATE_SUBNETS],securityGroups=[$DITTYDOG_LB_SG_1],assignPublicIp=ENABLED}" --load-balancers '[{"targetGroupArn": "'"$TARGET_GROUP"'", "containerName": "dittydog-frontend","containerPort": 80}]' --region ap-northeast-2
