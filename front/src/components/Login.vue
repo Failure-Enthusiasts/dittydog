@@ -35,7 +35,7 @@ export default {
             console.log(error);
           });
         console.log(response.data);
-        // if (!response.data.match('^http*')){
+        console.log(this.$route.query.code)
         if (response.data.playlist_id){
           console.log("hi in my regex not match")
           this.$router.push({ path: '/playlist', query: { playlist_id: response.data, session_id:response.data } })

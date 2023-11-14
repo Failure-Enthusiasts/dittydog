@@ -127,7 +127,7 @@ def create_app():
             log.info("route /, step 3")
             auth_manager.get_access_token(request.args.get("code"))
             print(f"login456 session is {session} in step 3", file=sys.stderr)
-            return redirect(f'http://{domain}:8080/')
+            return redirect(f'http://{domain}:8080/api/')
 
 
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
