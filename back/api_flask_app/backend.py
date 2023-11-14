@@ -47,9 +47,6 @@ else:
     log.info(f'Missing ECS_Fargate env var. Are you running locally?')
     print( 'Missing ECS_Fargate env var. Are you running locally?', file=sys.stderr)
 
-def unpack_json(request):
-    return request.json["code"]
-
 # frontend: trigger login
 # get_login_url
 # <frontend things, return the code>
@@ -76,12 +73,12 @@ def create_app():
     # mycache = redis_client.RedisClient()
 
     @app.route("/backend_finish_login", methods=["POST"])
-    def backend_finish_login(request):
+    def backend_finish_login():
     
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
 
-        code = unpack_json(request)
+        code = request.json["code"]
 
         # Step 3
         log.info("route /, step 3")
