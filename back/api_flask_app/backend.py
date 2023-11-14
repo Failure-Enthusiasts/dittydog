@@ -71,10 +71,9 @@ def create_app():
     Session(app)
     ## this doesn't work -- how do we share the Redis client across routes?
     # mycache = redis_client.RedisClient()
-
     @app.route("/backend_finish_login", methods=["POST"])
     def backend_finish_login():
-    
+        log.info("setting up cache_handler in backend_finish_login")
         cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
         auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
 
@@ -102,8 +101,7 @@ def create_app():
         # Step 4. Signed in, display data
         log.info("route /, step 4")
         print(f"login456 session is {session} in step 4", file=sys.stderr)
-        # return redirect(f'http://{domain}/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
-        return playlist_id, session["uuid"]
+        return json.dumps({'playlist_id': playlist_id, 'session_id': session.get('uuid')}), 200, {'ContentType':'application/json'}
 
     @app.route('/')
     def index():
