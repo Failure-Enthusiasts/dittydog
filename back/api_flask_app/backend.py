@@ -47,6 +47,14 @@ else:
     log.info(f'Missing ECS_Fargate env var. Are you running locally?')
     print( 'Missing ECS_Fargate env var. Are you running locally?', file=sys.stderr)
 
+def unpack_json(request):
+    return request.json["code"]
+
+# frontend: trigger login
+# get_login_url
+# <frontend things, return the code>
+# finish_login
+
 
 def create_app():
     # create and configure the app
@@ -67,6 +75,38 @@ def create_app():
     ## this doesn't work -- how do we share the Redis client across routes?
     # mycache = redis_client.RedisClient()
 
+    @app.route("/backend_finish_login", methods=["POST"])
+    def backend_finish_login(request):
+    
+        cache_handler = spotipy.cache_handler.RedisCacheHandler(redis=mycache, key=helper_functions.session_db_path('token'))
+        auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public playlist-read-private', cache_handler=cache_handler, show_dialog=True)
+
+        code = unpack_json(request)
+
+        # Step 3
+        log.info("route /, step 3")
+        auth_manager.get_access_token(request.args.get(str(code)))
+
+        # Playlist setting
+        playlist_obj = get_specific_cache_playlist(mycache, session.get('uuid'))
+        if playlist_obj is not None:
+            print(f"login456 session already exists pulling the ID", file=sys.stderr)
+            playlist_id = playlist_obj['playlist_id']
+        else:
+            internal_playlist, playlist_id = helper_functions.build_internal_playlist()
+            playlist_obj = {
+                "playlist": internal_playlist, 
+                "playlist_id": playlist_id,
+                "playlist_is_running": False
+            }
+            set_cache_playlist(mycache, playlist_obj)
+
+
+        # Step 4. Signed in, display data
+        log.info("route /, step 4")
+        print(f"login456 session is {session} in step 4", file=sys.stderr)
+        # return redirect(f'http://{domain}/playlist?playlist_id={playlist_id}&session_id={session["uuid"]}')
+        return playlist_id, session["uuid"]
 
     @app.route('/')
     def index():
@@ -125,7 +165,7 @@ def create_app():
             print(session['uuid'], file=sys.stderr)
             print("in get_login_url if not -here's the session_id get", file=sys.stderr)
             print(session.get('uuid'), file=sys.stderr)
-        else:
+        else: # FIX ME! KILLLL MEEEE
             print("in get_login_url else", file=sys.stderr)
             playlist_obj = get_specific_cache_playlist(mycache, session.get('uuid'))
             return json.dumps({'playlist_id': playlist_obj['playlist_id'], 'session_id': session.get('uuid')}), 200, {'ContentType':'application/json'}
